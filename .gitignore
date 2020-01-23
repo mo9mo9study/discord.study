@@ -1,0 +1,6 @@
+.env
+/music
+__pycache__
+test
+
+enter_exit/timelog/
