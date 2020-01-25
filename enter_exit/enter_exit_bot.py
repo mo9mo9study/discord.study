@@ -11,14 +11,15 @@ logsDirectory = 'timelog'
 
 ##
 logsPath = botScriptPath +"/"+ logsDirectory +"/"
-
+print(logsPath)
 ##
 
 
 def writeLog(time,name,m,mdta=''):
-    if not os.path.isdir(logsPaht):
-        os.mkdir(logsPaht)
-    filePath = f'{logsPaht}{name}'
+    print("---writeLog---")
+    if not os.path.isdir(logsPath):
+        os.mkdir(logsPath)
+    filePath = f'{logsPath}{name}'
     if os.path.isfile(filePath):
         with open(filePath, "a", encoding="utf-8") as f:
             f.write(str(time) + ',' + name + ',' + m + ',' + mdta + '\n')
@@ -27,7 +28,8 @@ def writeLog(time,name,m,mdta=''):
             f.write(str(time) + ',' + name + ',' + m + ',' + mdta + '\n')
 
 def splitTime(name):
-    filePath = f'{logsPaht}{name}'
+    print("---splitTime---")
+    filePath = f'{logsPath}{name}'
     with open(filePath) as f:
         arrAlllog = f.readlines()
         strReadlog = arrAlllog[-1]
