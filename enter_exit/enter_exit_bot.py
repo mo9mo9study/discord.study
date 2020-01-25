@@ -6,18 +6,19 @@ from datetime import datetime, timedelta
 
 client = discord.Client()
 pretime_dict = {}
-logDir = 'timelog'
+botScriptPath = os.path.dirname(os.path.abspath(__file__))
+logsDirectory = 'timelog'
 
 ##
-lD = logDir
+logsPath = botScriptPath +"/"+ logsDirectory +"/"
 
 ##
 
 
 def writeLog(time,name,m,mdta=''):
-    if not os.path.isdir(lD):
-        os.mkdir(lD)
-    filePath = f'{lD}/{name}'
+    if not os.path.isdir(logsPaht):
+        os.mkdir(logsPaht)
+    filePath = f'{logsPaht}{name}'
     if os.path.isfile(filePath):
         with open(filePath, "a", encoding="utf-8") as f:
             f.write(str(time) + ',' + name + ',' + m + ',' + mdta + '\n')
@@ -26,7 +27,7 @@ def writeLog(time,name,m,mdta=''):
             f.write(str(time) + ',' + name + ',' + m + ',' + mdta + '\n')
 
 def splitTime(name):
-    filePath = f'{lD}/{name}'
+    filePath = f'{logsPaht}{name}'
     with open(filePath) as f:
         arrAlllog = f.readlines()
         strReadlog = arrAlllog[-1]
@@ -56,10 +57,10 @@ async def on_voice_state_update(member, before, after):
                     duration_time_adjust = int(duration_time.total_seconds()) * -1
                     if duration_time_adjust >= 60:
                         minute_duration_time_adjust = int(duration_time_adjust) // 60
-                        if duration_time_adjust >= 300:
-                            msg = "-->[" + member.name + "]   Study time： " + str(minute_duration_time_adjust) + "/分"
+                        msg = "-->[" + member.name + "]   Study time： " + str(minute_duration_time_adjust) + "/分"
                         writeLog(datetime.now(),member.name,msg,str(minute_duration_time_adjust))
-                        await alert_channel.send(msg)
+                        if duration_time_adjust >= 300:
+                            await alert_channel.send(msg)
                 except KeyError:
                     pass
 
