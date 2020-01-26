@@ -1,5 +1,5 @@
 #!/bin/sh
-ps -ef |grep -v grep |grep enter_exit_bot.py >> /var/log/discord/enterBot/observer.log
+ps -ef |grep -v grep |grep enter_exit_bot.py 1 >> /var/log/discord/enterBot/observer.log 2>&1
 
 strStatus=$(echo $?)
 today=$(date "+%Y/%m/%d/%H:%M:%S")
