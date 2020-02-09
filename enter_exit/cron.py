@@ -1,119 +1,128 @@
-import discord
-from discord.ext import tasks
+import mimetypes
+import os
+from datetime import datetime, timedelta
 
-TOKEN = 
-CHANNEL = 
+import discord
+
+TOKEN = ""
+CHANNEL = ""
+LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
+
+
+def minutes2time(m):
+    hour = m // 60
+    minute = m % 60
+    result_study_time = str(hour) + "時間" + str(minute) + "分"
+    return result_study_time
+
+
+def arr_days(today):
+    days = []
+    for i in reversed(range(1, 8)):
+        day = today - timedelta(days=i)
+        days.append(datetime.strftime(day, '%Y-%m-%d'))
+    return days
+
+
+def serialize_log(*args, end="\n"):
+    context = "".join(map(str, args)) + end
+    return context
+
+
+def construct_user_record(user_name, studyWeekday, sum_study_time):
+    userWeekResult = serialize_log("Name：", user_name)
+    userWeekResult += serialize_log("　勉強した日付：", str(studyWeekday))
+    userWeekResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)))
+    return userWeekResult
+
+
+def compose_user_records(strtoday, days, users_log):
+    week_result = serialize_log("@everyone ")
+    week_result += "```\n"  # コードブロック始まり
+    week_result += serialize_log("今日の日付：", strtoday)
+    week_result += serialize_log("先週の日付：", days[0], "~", days[-1])
+    for user_log in users_log:
+        week_result += "====================\n"
+        week_result += user_log
+    week_result += "```"  # コードブロック終わり
+    return week_result
+
+
+def read_file(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    lines_strip = [line.strip() for line in lines]
+    return lines_strip
+
+
+def exclude_non_txt(file_list):
+    for file in file_list:
+        mime = mimetypes.guess_type(file)
+        if mime[0] != 'text/plain':
+            file_list.remove(file)
+    return file_list
+
+
+def aggregate_users_record(days):
+    """
+    各ユーザーの１週間の学習時間と日数を集計する
+    """
+    user_list = [os.path.join(LOG_DIR, txt) for txt in os.listdir(LOG_DIR)]
+    user_list = exclude_non_txt(user_list)
+
+    users_record = []
+
+    for user_log in user_list:
+        # ログファイル読み込み
+        lines_strip = read_file(user_log)
+
+        # １週間以内に勉強した日の学習ログのみ抜き出す
+        study_logs = []
+        for line in lines_strip:
+            if "Study time" in line:
+                study_logs += [line for day in days if day in line]
+        # 勉強した日がないユーザーは処理をスキップする
+        if study_logs == []:
+            print("学習記録がありません")
+            continue
+
+        # 学習ログから勉強した日付を抜き出す
+        study_days = []
+        for log in study_logs:
+            study_days += [day[-5:] for day in days if day in log]
+        study_days = sorted(set(study_days), key=study_days.index)
+
+        # 学習ログから合計勉強時間を算出する
+        sum_study_time = 0
+        for log in study_logs:
+            sum_study_time += int(log.split(",")[-1])
+
+        user_name = os.path.splitext(os.path.basename(user_log))[0]
+        user_record = construct_user_record(user_name, study_days, sum_study_time)
+        users_record.append(user_record)
+
+    return users_record
+
+
+def create_week_result():
+    today = datetime.today()
+    strtoday = datetime.strftime(today, '%Y-%m-%d')
+    days = arr_days(today)
+    user_records = aggregate_users_record(days)
+    week_result = compose_user_records(strtoday, days, user_records)
+    return week_result
+
+
+create_week_result()
 
 client = discord.Client()
 
 
-import os
-from datetime import datetime,timedelta
-
-dirListName = os.listdir(path='/home/ec2-user/discord/enter_exit/timelog')
-### 例外
-dirListName.remove("lesson.py")
-dirListName.remove("test.py")
-#dirListName.remove(".test.py.swp")
-# 対象ファイル（ユーザー）一覧
-#print(dirListName)
-
-strWeekResult = ""
-#arrMonthday = []
-today = datetime.today()
-def arrWeeklist(today):
-    global strWeekResult
-    arrMonthday = []
-    strtoday = datetime.strftime(today, '%Y-%m-%d')
-    for i in range(8):
-        if i == 0:
-            arrMonthday.append(strtoday)
-        else:
-            td = timedelta(days=i)
-            strselectday = today - td
-            arrMonthday.append(datetime.strftime(strselectday, '%Y-%m-%d'))
-    arrMonthday.remove(strtoday)
-    arrMonthday.sort()
-    return arrMonthday
-arrMonthday = arrWeeklist(today)
-
-strtoday = datetime.strftime(today, '%Y-%m-%d')
-strWeekResult += "@everyone \n"
-strWeekResult += "```\n"
-strWeekResult += "今日の日付：" + str(strtoday) + "\n"
-strWeekResult += "先週の日付：" + arrMonthday[0] + "~" + arrMonthday[-1] + "\n"
-
-for dirUserName in dirListName:
-    arrMonthday = arrWeeklist(today)
-    with open(dirUserName, encoding="utf-8") as f:
-        lines = f.readlines()
-    lines_strip = [ line.strip() for line in lines]
-    
-    
-    l_day = [line for line in lines_strip if "Study time" in line]
-
-    arrDay = []
-    for i in l_day:
-        arrDay += [i for line in arrMonthday if line in i]
-    # 勉強時間のログを全て出力する
-    #print('-----勉強ログ---------')
-    #print(arrDay)
-    #print('--------------')
-    
-    if arrDay == []:
-        continue
-    strWeekResult += "====================\n"
-    strWeekResult += "Name：" + dirUserName + "\n"
-    
-    studyWeekday = [] 
-   
-    for i in arrMonthday:
-        strarrDay = map(str, arrDay)
-        strarrDay = ','.join(strarrDay)
-
-        if i in strarrDay:
-            a = i[-5:]
-            studyWeekday.append(a)
-    #print("-修正後の日付---------")
-    #print(studyWeekday)
-    #print("----------")
-
-    strWeekResult += "　勉強した日付：" + str(studyWeekday) + "\n"
-    #strWeekResult += "　勉強した日数：" + str(len(studyWeekday)) + "\n"
-    
-    checkWeekDay = []
-    for i in arrMonthday:
-        for j in arrDay:
-            if i in j:
-                checkWeekDay.append(i)
-            else:
-                continue
-    countCheckWeekDay = len(checkWeekDay)
-    
-    
-    #strWeekResult += "　座席着席回数：" + str(len(arrDay)) + "回\n"
-    sumTime = 0
-    for i in arrDay:
-        i_split = i.split(",")
-        sumTime += int(i_split[-1])
-    def calTime(m):
-        hour = m // 60
-        minute = m % 60
-        resultStudyTime = str(hour) + "時間" + str(minute) + "分\n"
-        return resultStudyTime
-    strWeekResult += "　合計勉強時間：" + str(calTime(sumTime))
-
-    
-print(strWeekResult)
-
 @client.event
 async def on_message(message):
     if message.content.startswith("/Result"):
-        global strWeekResult
         channel = client.get_channel(CHANNEL)
-        strWeekResult += "\n```"
-        await channel.send(strWeekResult)
+        await channel.send(create_week_result)
 
 
 client.run(TOKEN)
-
