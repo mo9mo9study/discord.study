@@ -1,8 +1,9 @@
 import mimetypes
 import os
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import discord
+from discord.ext import tasks
 
 TOKEN = ""
 CHANNEL = ""
@@ -113,8 +114,6 @@ def create_week_result():
     return week_result
 
 
-create_week_result()
-
 client = discord.Client()
 
 
@@ -124,5 +123,15 @@ async def on_message(message):
         channel = client.get_channel(CHANNEL)
         await channel.send(create_week_result)
 
+
+@tasks.loop(seconds=60)
+async def post_week_result():
+    if datetime.now().strftime('%H:%M') == "10:00":
+        if date.today().weekday() == 0:
+            channel = client.get_channel(CHANNEL)
+            await channel.send(create_week_result)
+
+
+post_week_result.start()
 
 client.run(TOKEN)
