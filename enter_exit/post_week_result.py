@@ -1,12 +1,14 @@
 import mimetypes
 import os
+import setting
 from datetime import date, datetime, timedelta
 
 import discord
 from discord.ext import tasks
 
-TOKEN = ""
-CHANNEL = ""
+TOKEN = setting.tToken
+CHANNEL = setting.tChannel
+SERVER = setting.tServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
 
 
@@ -126,7 +128,7 @@ async def on_message(message):
 
 @tasks.loop(seconds=60)
 async def post_week_result():
-    if datetime.now().strftime('%H:%M') == "10:00":
+    if datetime.now().strftime('%H:%M') == "00:22":
         if date.today().weekday() == 0:
             channel = client.get_channel(CHANNEL)
             await channel.send(create_week_result)
