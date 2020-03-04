@@ -20,3 +20,8 @@ tToken = os.environ.get("TEST_BOT_TOKEN")
 cServer = int(os.environ.get("CRON_SEVER_ID"))
 cChannel = int(os.environ.get("CRON_CHANNEL_ID"))
 cToken = os.environ.get("CRON_BOT_TOKEN")
+
+# channels
+## SLOT RESULT CHANNEL
+sChannel = int(os.environ.get("SLOT_RESULT_CHANNEL_ID"))
+
