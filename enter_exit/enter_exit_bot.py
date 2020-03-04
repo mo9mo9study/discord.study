@@ -42,30 +42,34 @@ def splitTime(name):
 @client.event
 async def on_voice_state_update(member, before, after):
     if member.name != 'ブレーメン音楽隊':
-        if after.channel.name != 'リモートワーク用' or before.channel.name != 'リモートワーク用':
-            if member.guild.id == setting.dServer and (before.channel != after.channel):
-                now = datetime.utcnow() + timedelta(hours=9)
-                alert_channel = client.get_channel(setting.dChannel)
-    
-                if before.channel is None:
-                    pretime_dict['beforetime'] = datetime.now()
-                    msg = f'{now:%m/%d %H:%M} 　 {member.name}   joined the  {after.channel.name}'
-                    writeLog(datetime.now(),member.name,msg)
-                    await alert_channel.send(msg)
-                elif after.channel is None:
-                    msg = f'[{now:%m/%d %H:%M} ]  {member.name}  joined  {before.channel.name} '
-                    dtBefortime = splitTime(member.name)
-                    try:
-                        duration_time = dtBefortime - datetime.now()
-                        duration_time_adjust = int(duration_time.total_seconds()) * -1
-                        if duration_time_adjust >= 60:
-                            minute_duration_time_adjust = int(duration_time_adjust) // 60
-                            msg = "-->[" + member.name + "]   Study time： " + str(minute_duration_time_adjust) + "/分"
-                            writeLog(datetime.now(),member.name,msg,str(minute_duration_time_adjust))
-                            if duration_time_adjust >= 300:
-                                await alert_channel.send(msg)
-                    except KeyError:
-                        pass
+#        if after.channel.name != 'リモートワーク用' or before.channel.name != 'リモートワーク用':
+        if member.guild.id == setting.dServer and (before.channel != after.channel):
+            now = datetime.utcnow() + timedelta(hours=9)
+            alert_channel = client.get_channel(setting.dChannel)
+
+            if before.channel is None:
+                if after.channel.name == 'リモートワーク用':
+                    return
+                pretime_dict['beforetime'] = datetime.now()
+                msg = f'{now:%m/%d %H:%M} 　 {member.name}   joined the  {after.channel.name}'
+                writeLog(datetime.now(),member.name,msg)
+                await alert_channel.send(msg)
+            elif after.channel is None:
+                if before.channel.name == 'リモートワーク用':
+                    return
+                msg = f'[{now:%m/%d %H:%M} ]  {member.name}  joined  {before.channel.name} '
+                dtBefortime = splitTime(member.name)
+                try:
+                    duration_time = dtBefortime - datetime.now()
+                    duration_time_adjust = int(duration_time.total_seconds()) * -1
+                    if duration_time_adjust >= 60:
+                        minute_duration_time_adjust = int(duration_time_adjust) // 60
+                        msg = "-->[" + member.name + "]   Study time： " + str(minute_duration_time_adjust) + "/分"
+                        writeLog(datetime.now(),member.name,msg,str(minute_duration_time_adjust))
+                        if duration_time_adjust >= 300:
+                            await alert_channel.send(msg)
+                except KeyError:
+                    pass
             
 
 client.run(setting.dToken)
