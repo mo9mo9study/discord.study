@@ -8,7 +8,7 @@ client = discord.Client()
 pretime_dict = {}
 botScriptPath = os.path.dirname(os.path.abspath(__file__))
 logsDirectory = 'timelog'
-NotReaocrds = '時間記録無'
+NotRecords = '時間記録無'
 
 ##
 logsPath = botScriptPath +"/"+ logsDirectory +"/"
