@@ -128,7 +128,7 @@ async def on_message(message):
 
 @tasks.loop(seconds=60)
 async def post_week_result():
-    if datetime.now().strftime('%H:%M') == "00:22":
+    if datetime.now().strftime('%H:%M') == "17:15":
         if date.today().weekday() == 0:
             channel = client.get_channel(CHANNEL)
             await channel.send(create_week_result)
