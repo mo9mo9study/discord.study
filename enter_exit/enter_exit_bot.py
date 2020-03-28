@@ -8,6 +8,7 @@ client = discord.Client()
 pretime_dict = {}
 botScriptPath = os.path.dirname(os.path.abspath(__file__))
 logsDirectory = 'timelog'
+NotReaocrds = '時間記録無'
 
 ##
 logsPath = botScriptPath +"/"+ logsDirectory +"/"
@@ -42,20 +43,19 @@ def splitTime(name):
 @client.event
 async def on_voice_state_update(member, before, after):
     if member.name != 'ブレーメン音楽隊':
-#        if after.channel.name != 'リモートワーク用' or before.channel.name != 'リモートワーク用':
         if member.guild.id == setting.dServer and (before.channel != after.channel):
             now = datetime.utcnow() + timedelta(hours=9)
             alert_channel = client.get_channel(setting.dChannel)
 
             if before.channel is None:
-                if after.channel.name == 'リモートワーク用':
+                if NotRecords in after.channel.name:
                     return
                 pretime_dict['beforetime'] = datetime.now()
                 msg = f'{now:%m/%d %H:%M} 　 {member.name}   joined the  {after.channel.name}'
                 writeLog(datetime.now(),member.name,msg)
                 await alert_channel.send(msg)
             elif after.channel is None:
-                if before.channel.name == 'リモートワーク用':
+                if NotRecords in before.channel.name:
                     return
                 msg = f'[{now:%m/%d %H:%M} ]  {member.name}  joined  {before.channel.name} '
                 dtBefortime = splitTime(member.name)
