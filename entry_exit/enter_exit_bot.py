@@ -17,7 +17,7 @@ print(logsPath)
 
 
 def writeLog(time,name,m,mdta=''):
-    print("---writeLog---")
+    print("<ログの書き込み>")
     if not os.path.isdir(logsPath):
         os.mkdir(logsPath)
     filePath = f'{logsPath}{name}'
@@ -29,7 +29,7 @@ def writeLog(time,name,m,mdta=''):
             f.write(str(time) + ',' + name + ',' + m + ',' + mdta + '\n')
 
 def splitTime(name):
-    print("---splitTime---")
+    print("<ログの読み込み>")
     filePath = f'{logsPath}{name}'
     with open(filePath) as f:
         arrAlllog = f.readlines()
@@ -43,32 +43,39 @@ def splitTime(name):
 @client.event
 async def on_voice_state_update(member, before, after):
     if member.name != 'ブレーメン音楽隊':
+        print(member.name + " : ステータスが変更されました")
         if member.guild.id == setting.dServer and (before.channel != after.channel):
             now = datetime.utcnow() + timedelta(hours=9)
             alert_channel = client.get_channel(setting.dChannel)
 
             if before.channel is None:
-                if NotRecords in after.channel.name:
-                    return
+                print("入室時の処理")
                 pretime_dict['beforetime'] = datetime.now()
                 msg = f'{now:%m/%d %H:%M} 　 {member.name}   joined the  {after.channel.name}'
                 writeLog(datetime.now(),member.name,msg)
+                if NotRecords in after.channel.name:
+                    return
                 await alert_channel.send(msg)
             elif after.channel is None:
+                print("退室時の処理")
                 if NotRecords in before.channel.name:
                     return
                 msg = f'[{now:%m/%d %H:%M} ]  {member.name}  joined  {before.channel.name} '
                 dtBefortime = splitTime(member.name)
                 try:
+                    print("try")
                     duration_time = dtBefortime - datetime.now()
                     duration_time_adjust = int(duration_time.total_seconds()) * -1
                     if duration_time_adjust >= 60:
+                        print("60sec以上")
                         minute_duration_time_adjust = int(duration_time_adjust) // 60
                         msg = "-->[" + member.name + "]   Study time： " + str(minute_duration_time_adjust) + "/分"
                         writeLog(datetime.now(),member.name,msg,str(minute_duration_time_adjust))
                         if duration_time_adjust >= 300:
+                            print("退室ログをDiscordに出力")
                             await alert_channel.send(msg)
                 except KeyError:
+                    print("except")
                     pass
             
 
