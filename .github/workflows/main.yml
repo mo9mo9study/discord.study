@@ -15,3 +15,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
+      - name: Output file contents
+        run: |
+          pwd
+          ls
+      - name: Copy files to S3 with the AWS CLI
+        env: 
+          AWS_S3_BUCKET_PATH: ${{ secrets.AWS_S3_BUCKET_PATH }}
+        run: |
+          aws s3 sync . s3://"$AWS_S3_BUCKET_PATH"
