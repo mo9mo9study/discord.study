@@ -14,12 +14,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
-      - name: AWS SSM Send-Command
-        uses: peterkimzz/aws-ssm-send-command@0.0.2
-        with:
-          instance_ids: ${{ secrets.INSTANCE_ID }}
-          commands: git log --oneline
-          working_directory: /home/ec2-user/discord
+#      - name: AWS SSM Send-Command
+#        uses: peterkimzz/aws-ssm-send-command@0.0.2
+#        with:
+#          instance_ids: ${{ secrets.INSTANCE_ID }}
+#          commands: git log --oneline
+#          working_directory: /home/ec2-user/discord
 
 #name: AWS S3 Deploy
 #on:
