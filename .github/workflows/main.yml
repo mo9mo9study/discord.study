@@ -14,7 +14,7 @@ jobs:
           pwd
       - name: Output ls
         run: |
-          ls -la
+          ls -la ..
       - name: Copy files to S3 with the AWS CLI
         run: |
           aws s3 cp . s3://mokumokuonlinestudyroom-test-githubaction
