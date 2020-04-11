@@ -3,7 +3,7 @@ jobs:
   s3deploy:
     runs-on: ubuntu-latest
     steps:
-   	  - name: Checkout
+      - name: Checkout
         uses: actions/checkout@v2
       - name: Publish to AWS S3
         uses: aws-actions/configure-aws-credentials@v1
