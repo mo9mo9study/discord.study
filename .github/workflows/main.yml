@@ -22,8 +22,6 @@ jobs:
       - name: AWS SSM Send-Command
         uses: peterkimzz/aws-ssm-send-command@0.0.2
         with:
-          instance_ids: i-01dbefa027673eff6
-          commands: 
-            - rm -f testtest.txt;
-            - touch testtest.txt 
-          working_directory: /home/ec2-user/work
+          instance_ids: ${{ secrets.INSTANCE_ID }}
+          commands: git pull
+          working_directory: /home/ec2-user/discord
