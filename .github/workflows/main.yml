@@ -23,5 +23,5 @@ jobs:
         uses: peterkimzz/aws-ssm-send-command@0.0.2
         with:
           instance_ids: ${{ secrets.INSTANCE_ID }}
-          commands: git pull
+          commands: sudo su ec2-user; git pull # root(default)権限が付与されてしまうため
           working_directory: /home/ec2-user/discord
