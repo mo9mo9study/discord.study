@@ -20,5 +20,7 @@ jobs:
           pwd
           ls
       - name: Copy files to S3 with the AWS CLI
+        env: 
+          AWS_S3_BUCKET_PATH: ${{ secrets.AWS_S3_BUCKET_PATH }}
         run: |
-          aws s3 sync . s3://mokumokuonlinestudyroom-test-githubaction
+          aws s3 sync . s3://"$AWS_S3_BUCKET_PATH"
