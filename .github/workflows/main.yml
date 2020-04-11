@@ -20,8 +20,8 @@ jobs:
 #          pwd
 #          ls
       - name: AWS SSM Send-Command
-        uses: peterkimzz/aws-ssm-send-command@0.0.1
+        uses: peterkimzz/aws-ssm-send-command@0.0.2
         with:
           instance_ids: i-01dbefa027673eff6
-          commands: git log --oneline
+          commands: ls -la
           working_directory: /home/ec2-user/discord
