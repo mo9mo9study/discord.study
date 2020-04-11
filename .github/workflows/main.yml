@@ -23,5 +23,5 @@ jobs:
         uses: peterkimzz/aws-ssm-send-command@0.0.2
         with:
           instance_ids: i-01dbefa027673eff6
-          commands: sudo chown ec2-user:ec2-user testtest.txt 
+          commands: rm -f testtest.txt; touch testtest.txt 
           working_directory: /home/ec2-user/work
