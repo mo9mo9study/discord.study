@@ -14,7 +14,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
       - name: AWS SSM Send-Command
-        uses: peterkimzz/aws-ssm-send-command
+        uses: .github/workflows/main.yml
         with:
           instance_ids: ${{ secrets.INSTANCE_ID }}
           commands: |
