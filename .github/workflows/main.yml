@@ -22,6 +22,6 @@ jobs:
       - name: AWS SSM Send-Command
         uses: peterkimzz/aws-ssm-send-command@0.0.1
         with:
-          instance_ids: ${{ secrets.INSTANCE_ID }}
+          instance_ids: i-01dbefa027673eff6
           commands: git log --oneline
           working_directory: /home/ec2-user/discord
