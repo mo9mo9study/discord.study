@@ -1,9 +1,13 @@
-name: AWS S5 Deploy
+name: AWS S3 Deploy
+on:
+  push:
+    branches:
+      - master
 jobs:
   s3deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+   	  - name: Checkout
         uses: actions/checkout@v2
       - name: Publish to AWS S3
         uses: aws-actions/configure-aws-credentials@v1
@@ -17,8 +21,4 @@ jobs:
           ls
       - name: Copy files to S3 with the AWS CLI
         run: |
-          aws s3 cp . ${{ secrets.AWS_S3_BUCKET_PATH }}
-on:
-  push:
-    branches:
-      - master
+          aws s3 sync . ${{ secrets.AWS_S3_BUCKET_PATH }}
