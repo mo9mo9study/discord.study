@@ -19,8 +19,9 @@ jobs:
         run: |
           pwd
           ls
-      - name: Copy files to S3 with the AWS CLI
-        env: 
-          AWS_S3_BUCKET_PATH: ${{ secrets.AWS_S3_BUCKET_PATH }}
-        run: |
-          aws s3 sync . s3://"$AWS_S3_BUCKET_PATH"
+      - name: AWS SSM Send-Command
+        uses: peterkimzz/aws-ssm-send-command@0.0.2
+        with:
+          instance_ids: ${{ secrets.INSTANCE_ID }}
+          commands: ls -al
+          working_directory: /home/ec2-user
