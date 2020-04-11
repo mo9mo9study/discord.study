@@ -2,7 +2,6 @@ name: AWS Run Command Example2
 on:
   push:
     branches: master
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +15,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
       - name: AWS SSM Send-Command
-        uses: peterkimzz/aws-ssm-send-command@0.0.2
+        uses: peterkimzz/aws-ssm-send-command
         with:
           instance_ids: ${{ secrets.INSTANCE_ID }}
           commands: git log --oneline
