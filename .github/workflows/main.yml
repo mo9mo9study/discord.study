@@ -1,14 +1,14 @@
 name: AWS Run Command Example2
 on:
   push:
-    branches: 
-      - master
+    branches: master
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
