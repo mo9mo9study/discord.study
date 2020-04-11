@@ -1,4 +1,4 @@
-name: AWS Run Command Example
+name: AWS Run Command Example2
 on:
   push:
     branches: 
