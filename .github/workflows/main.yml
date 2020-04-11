@@ -10,11 +10,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
       - name: Output file contents
-              run: |
-                pwd
+        run: |
+          pwd
       - name: Copy files to S3 with the AWS CLI
         run: |
-       		aws s3 cp . s3://mokumokuonlinestudyroom-test-githubaction
+          aws s3 cp . s3://mokumokuonlinestudyroom-test-githubaction
 on:
   push:
     branches:
