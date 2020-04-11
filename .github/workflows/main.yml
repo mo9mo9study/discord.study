@@ -21,4 +21,4 @@ jobs:
           ls
       - name: Copy files to S3 with the AWS CLI
         run: |
-          aws s3 sync . ${{ secrets.AWS_S3_BUCKET_PATH }}
+          aws s3 sync . s3://mokumokuonlinestudyroom-test-githubaction
