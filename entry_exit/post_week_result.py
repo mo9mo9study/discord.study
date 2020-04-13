@@ -5,12 +5,13 @@ from datetime import date, datetime, timedelta
 
 import discord
 from discord.ext import tasks
-
-TOKEN = setting.tToken
+## testroleiギルドの[テストBOT007]にて起動
+#TOKEN = setting.tToken
 #CHANNEL = setting.tChannel
-SERVER = 657225044971356170
-CHANNEL = 678977043811270678
 #SERVER = setting.tServer
+TOKEN = setting.dToken
+CHANNEL = setting.wChannel
+SERVER = setting.dServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
 
 
@@ -29,7 +30,6 @@ def arr_days(today):
         days.append(datetime.strftime(day, '%Y-%m-%d'))
     return days
 
-
 def serialize_log(*args, end="\n"):
     print("serialize_log")
     context = "".join(map(str, args)) + end
@@ -47,6 +47,7 @@ def construct_user_record(user_name, studyWeekday, sum_study_time):
 def compose_user_records(strtoday, days, users_log):
     print('compose_user_records')
     week_result = serialize_log("@everyone ")
+#    week_result = serialize_log("<@603567991132782592>") # デバック用にSuPleiades宛にメンション
     week_result += "```\n"  # コードブロック始まり
     week_result += serialize_log("今日の日付：", strtoday)
     week_result += serialize_log("先週の日付：", days[0], "~", days[-1])
@@ -95,7 +96,7 @@ def aggregate_users_record(days):
                 study_logs += [line for day in days if day in line]
         # 勉強した日がないユーザーは処理をスキップする
         if study_logs == []:
-            print("学習記録がありません")
+            print(f'{user_list}: 学習記録がありません')
             continue
 
         # 学習ログから勉強した日付を抜き出す
@@ -118,7 +119,6 @@ def aggregate_users_record(days):
 
 
 def create_week_result():
-    print(2)
     today = datetime.today()
     strtoday = datetime.strftime(today, '%Y-%m-%d')
     days = arr_days(today)
@@ -133,19 +133,21 @@ client = discord.Client()
 
 @client.event
 async def on_message(message):
-    if message.content.startswith("/Result"):
+    if message.content.startswith("/Week_Result"):
+        if message.author.id != 603567991132782592:
+            return
+        print(f'手動週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
         channel = client.get_channel(CHANNEL)
-        print(1)
-        strResult = create_week_result()
-        print(strResult)
+## デバック用
+#        strResult = create_week_result()
+#        print(strResult)
         await channel.send(create_week_result())
 
 
 @tasks.loop(seconds=60)
 async def post_week_result():
-    print(1)
-    print(datetime.now().strftime('%H:%M'))
-    if datetime.now().strftime('%H:%M') == "15:18":
+    if datetime.now().strftime('%H:%M') == "07:30":
+        print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
         channel = client.get_channel(CHANNEL)
         await channel.send(create_week_result())
         if date.today().weekday() == 0:
