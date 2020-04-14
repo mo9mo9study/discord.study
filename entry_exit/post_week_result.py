@@ -16,7 +16,6 @@ LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
 
 
 def minutes2time(m):
-    print("minutes2time")
     hour = m // 60
     minute = m % 60
     result_study_time = str(hour) + "時間" + str(minute) + "分"
@@ -31,13 +30,11 @@ def arr_days(today):
     return days
 
 def serialize_log(*args, end="\n"):
-    print("serialize_log")
     context = "".join(map(str, args)) + end
     return context
 
 
 def construct_user_record(user_name, studyWeekday, sum_study_time):
-    print('construct_user_record')
     userWeekResult = serialize_log("Name：", user_name)
     userWeekResult += serialize_log("　勉強した日付：", str(studyWeekday))
     userWeekResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)))
@@ -45,7 +42,6 @@ def construct_user_record(user_name, studyWeekday, sum_study_time):
 
 
 def compose_user_records(strtoday, days, users_log):
-    print('compose_user_records')
     week_result = serialize_log("@everyone ")
 #    week_result = serialize_log("<@603567991132782592>") # デバック用にSuPleiades宛にメンション
     week_result += "```\n"  # コードブロック始まり
@@ -59,7 +55,6 @@ def compose_user_records(strtoday, days, users_log):
 
 
 def read_file(file_path):
-    print('read_file')
     with open(file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     lines_strip = [line.strip() for line in lines]
@@ -67,7 +62,6 @@ def read_file(file_path):
 
 
 def exclude_non_txt(file_list):
-    print('exclude_non_txt')
     for file in file_list:
         mime = mimetypes.guess_type(file)
         if mime[0] != 'text/plain':
@@ -76,7 +70,6 @@ def exclude_non_txt(file_list):
 
 
 def aggregate_users_record(days):
-    print('aggregate_users_record')
     """
     各ユーザーの１週間の学習時間と日数を集計する
     """
@@ -111,9 +104,7 @@ def aggregate_users_record(days):
             sum_study_time += int(log.split(",")[-1])
 
         user_name = os.path.splitext(os.path.basename(user_log))[0]
-        print(user_log)
         user_record = construct_user_record(user_name, study_days, sum_study_time)
-        print(user_record)
         users_record.append(user_record)
     return users_record
 
@@ -123,7 +114,6 @@ def create_week_result():
     strtoday = datetime.strftime(today, '%Y-%m-%d')
     days = arr_days(today)
     user_records = aggregate_users_record(days)
-    print(user_records)
     week_result = compose_user_records(strtoday, days, user_records)
     return week_result
 
@@ -147,10 +137,8 @@ async def on_message(message):
 @tasks.loop(seconds=60)
 async def post_week_result():
     if datetime.now().strftime('%H:%M') == "07:30":
-        print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
-        channel = client.get_channel(CHANNEL)
-        await channel.send(create_week_result())
         if date.today().weekday() == 0:
+            print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
             channel = client.get_channel(CHANNEL)
             await channel.send(create_week_result())
 
