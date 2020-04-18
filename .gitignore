@@ -1,7 +1,7 @@
 .env
 /music
 __pycache__
-test
+test.*
 
 /timelog/
 node_modules
