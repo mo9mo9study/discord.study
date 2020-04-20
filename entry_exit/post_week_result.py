@@ -89,7 +89,7 @@ def aggregate_users_record(days):
                 study_logs += [line for day in days if day in line]
         # 勉強した日がないユーザーは処理をスキップする
         if study_logs == []:
-            print(f'{user_list}: 学習記録がありません')
+            print(f'{user_log}: 学習記録がありません\n')
             continue
 
         # 学習ログから勉強した日付を抜き出す
@@ -118,13 +118,14 @@ def create_week_result():
     return week_result
 
 
+print(create_week_result())
 client = discord.Client()
-
 
 @client.event
 async def on_message(message):
     if message.content.startswith("/Week_Result"):
         if message.author.id != 603567991132782592:
+            print('管理者(SuPleiades)以外のメンバーが実行しました')
             return
         print(f'手動週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
         channel = client.get_channel(CHANNEL)
