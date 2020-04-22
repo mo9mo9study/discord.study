@@ -7,8 +7,8 @@ pip install -r requirements.txt
 ## sqlite3 databaseschema
 ```
 CREATE TABLE mem_time(
-    userid INTEGER,
-    username TEXT,
+    userid INT NOT NULL PRIMARY KEY,
+    username TEXT NOT NULL,
     modifeid_datetime TEXT NOT NULL DEFAULT (DATETIME('now','localtime')),
     guild_join_datetime TEXT,
     voicechannel_lastjoin_datetime TEXT,
