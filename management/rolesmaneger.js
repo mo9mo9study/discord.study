@@ -19,10 +19,10 @@ const emojiRoleMap = {
 }
 
 const rolesmanagement_text = () => {
-    const strText = '\n対応した役職を付与します\n';
-    const tmp = Object.entries(emojiRoleMap)
+    let strText = '\n対応した役職を付与します\n';
+    const tmp = Object.entries(emojiRoleMap);
     for (const [ key, value ] of tmp) {
-        //strText += `${key} : ${value}\n`
+        strText += `${key} : ${value}\n`;
     }
     return strText
 }
@@ -30,6 +30,11 @@ const rolesmanagement_text = () => {
 // リアクション起動コード
 client.on('messageReactionRemove', async(reaction, user) => {
     const messageAuthorChannelId = reaction.message.channel.id
+    const channel = await user.client.channels.fetch(messageAuthorChannelId);
+    if (!channel) return console.log('channel が取得できません！');
+    const member = await channel.guild.members.fetch(user);
+    if (!member) return console.log('member が取得できません！');
+
     // リアクションしたuserがBOTなら処理を終える
     if (user.bot) return
     // 対応する役職がリアクションしたメンバーに付与されていなければ処理を終える
@@ -41,15 +46,22 @@ client.on('messageReactionRemove', async(reaction, user) => {
 })
 
 client.on('messageReactionAdd', async (reaction, user) => {
-    const messageAuthorChannelId = reaction.message.channel.id
-    if (user.bot) return console.log('bot だよ')
-    console.log(`${reaction.message.guild} で ${user.tag} が ${reaction.emoji.name} をリアクションしました`)
-
+    if (user.bot) return
+    const messageAuthorChannelId = reaction.message.channel.id;
     const channel = await user.client.channels.fetch(messageAuthorChannelId);
-    if (!channel) return console.log('channel が取得できません！')
+    if (!channel) return console.log('channel が取得できません！');
     const member = await channel.guild.members.fetch(user);
-    if (!member) return console.log('member が取得できません！')
+    if (!member) return console.log('member が取得できません！');
+    console.log(`${reaction.message.guild} で ${user.tag} が ${reaction.emoji.name} をリアクションしました`);
 
+    // リアクション'✅'を行うことで[emojiRoleMap].valueの役職を全て剥奪
+    if (reaction.emoji.name === '✅') {
+        Object.values(emojiRoleMap).map(value => {
+            const role = reaction.message.guild.roles.cache.find(role => role.name === value);
+            member.roles.remove(role);
+        });
+        return
+    }
     // ボットのメッセージに絵文字リアクションしたかどうか判定
     // ->  してない場合 -> 処理を終える
     // ->  した場合は -> 本文に「対応した役職を付与します」があれば -> 役職を付与する処理を行う
