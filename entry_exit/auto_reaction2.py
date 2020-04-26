@@ -37,14 +37,15 @@ async def on_message(message):
         if intStudyTime in notOutputNum: 
             return
         else:
-            slotresult1 = 0
-            slotresult2 = 0
-            slotresult3 = 0
-            #slotresult1 = intRandom(slot1)
+            # 確認用の大当たりをコード
+#            slotresult1 = 0
+#            slotresult2 = 0
+#            slotresult3 = 0
+            slotresult1 = intRandom(slot1)
             await addReaction(message,slot1,0)
-            #slotresult2 = intRandom(slot2)
+            slotresult2 = intRandom(slot2)
             await addReaction(message,slot2,0)
-            #slotresult3 = intRandom(slot3)
+            slotresult3 = intRandom(slot3)
             await addReaction(message,slot3,0)
         if slotresult1 == 0 and slotresult2 == 0 and slotresult3 == 0:
             alert_channel = client.get_channel(CHANNEL)
