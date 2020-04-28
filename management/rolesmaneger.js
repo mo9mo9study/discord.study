@@ -2,7 +2,7 @@ require('dotenv').config()
 const Discord = require('discord.js');
 
 const env = process.env;
-const TOKEN = env.TEST_BOT_TOKEN;
+const TOKEN = env.CRON_BOT_TOKEN;
 const client = new Discord.Client();
 
 client.on('ready', () => {
@@ -10,20 +10,21 @@ client.on('ready', () => {
 });
 
 const emojiRoleMap = {
-    '🇦': 'AWS_RSS',
-    '🇧': 'UR',
-    '🇨': 'SR',
-    '🇩': 'R',
-    '🇫': 'UC',
-    '🇬': 'C'
+    '🇦': 'RSS_AWS技術ブログ',
+    '🇧': 'RSS_AWS公式',
+    '🇨': 'RSS_Blackriver',
+    '🇩': 'JOIN_gym',
 }
+//    '🇫': 'UC',
+//    '🇬': 'C'
 
 const rolesmanagement_text = () => {
     let strText = '\n対応した役職を付与します\n';
     const tmp = Object.entries(emojiRoleMap);
     for (const [ key, value ] of tmp) {
-        strText += `${key} : ${value}\n`;
+        strText += `${key} : #${value}\n`;
     }
+    strText += `(※ ✅ : 自動で付与/剥奪できる役職全てを剥奪します )\n`;
     return strText
 }
 
@@ -77,15 +78,15 @@ client.on('message', message => {
     // ボットの場合は処理をしない
     console.log('---start---');
     if(message.author.bot) {
+        if(!message.content.includes('対応した役職を付与します')) return
         console.log('---bot---');
-        //message.react('0️⃣');
         let tmp = Object.entries(emojiRoleMap)
         for (let [ key, value ] of tmp) {
             message.react(key);
         }
         return;
     }
-    message.react('💩');
+//    message.react('💩');
 
     // 人のメッセージの中に特定の文字列(今回なら!rolesmanagement)なら処理をする
     if(message.content === '!rolesmanagement') {
@@ -97,6 +98,7 @@ client.on('message', message => {
         message.reply(reply_text)
             .then(message => console.log(`Sent message: ${reply_text}`))
             .catch(console.error);
+        message.delete({ timeout: 1000 })
         return;
     }
 });
