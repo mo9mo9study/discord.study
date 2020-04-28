@@ -37,17 +37,33 @@ async def on_message(message):
         if intStudyTime in notOutputNum: 
             return
         else:
+            # 確認用の大当たりをコード
+#            slotresult1 = 0
+#            slotresult2 = 0
+#            slotresult3 = 0
             slotresult1 = intRandom(slot1)
-            await addReaction(message,slot1,slotresult1)
+            await addReaction(message,slot1,0)
             slotresult2 = intRandom(slot2)
-            await addReaction(message,slot2,slotresult2)
+            await addReaction(message,slot2,0)
             slotresult3 = intRandom(slot3)
-            await addReaction(message,slot3,slotresult3)
+            await addReaction(message,slot3,0)
         if slotresult1 == 0 and slotresult2 == 0 and slotresult3 == 0:
             alert_channel = client.get_channel(CHANNEL)
             now = datetime.utcnow() + timedelta(hours=9)
-            msg = "@" + str(strName) + "  \n"
+            # messageと文字列の名前を紐づけてmembers.mentionの取得
+            guildMembers = message.guild.members
+            intCountLoop = 0
+            for member in guildMembers:
+                if member.name == strName:
+                    break
+                intCountLoop += 1
+            userMentionId = guildMembers[intCountLoop].mention
+            print('userMentionId:',userMentionId)
+            print('username:',guildMembers[intCountLoop].name)
+        
+            msg = userMentionId + " \n"
             msg += f'[{now:%m/%d %H:%M} ] 勉強時間ボーナススロット大当たり！！{intStudyTime}分の勉強お疲れ様！'
+            print(msg)
             await alert_channel.send(msg)
 
 client.run(TOKEN)
