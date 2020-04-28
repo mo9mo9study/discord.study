@@ -1,4 +1,5 @@
-import mimetypes
+# import mimetypes
+import magic
 import os
 import setting
 from datetime import date, datetime, timedelta
@@ -25,6 +26,7 @@ def minutes2time(m):
 def arr_days(today):
     days = []
     for i in reversed(range(1, 8)):
+#    for i in reversed(range(2, 9)): # 火曜日用
         day = today - timedelta(days=i)
         days.append(datetime.strftime(day, '%Y-%m-%d'))
     return days
@@ -60,13 +62,31 @@ def read_file(file_path):
     lines_strip = [line.strip() for line in lines]
     return lines_strip
 
+# 削除予定
+#def exclude_non_txt(file_list):
+#    for file in file_list:
+#        mime = mimetypes.guess_type(file)
+#        if mime[0] != 'text/plain':
+#            file_list.remove(file)
+#    return file_list
 
 def exclude_non_txt(file_list):
+    file_list_result = list(file_list)
+    print('対象ファイル数 : ',len(file_list))
+    print('--- 対象ファイルの[名前/ファイルタイプ]と[対象から除外か否か]の処理結果を出力 ---')
     for file in file_list:
-        mime = mimetypes.guess_type(file)
-        if mime[0] != 'text/plain':
-            file_list.remove(file)
-    return file_list
+        file_type = magic.from_file(file, mime=True)
+        print(f'\n python-magic: {file_type} --> [file]: {file}',end='') # 確認用
+        if file_type != 'text/plain':
+            print('-->  [ remove ]',end='') # 確認用
+            file_list_result.remove(file)
+    print('\n--- (除外対象)ファイルタイプが[text/plain]でない対象 --- ')
+    result = list(set(file_list) - set(file_list_result))
+    for x in result:
+        print(x)
+    print('--- end --- ')
+    return file_list_result
+
 
 
 def aggregate_users_record(days):
@@ -89,7 +109,7 @@ def aggregate_users_record(days):
                 study_logs += [line for day in days if day in line]
         # 勉強した日がないユーザーは処理をスキップする
         if study_logs == []:
-            print(f'{user_log}: 学習記録がありません\n')
+            print(f'{user_log}: 学習記録がありません')
             continue
 
         # 学習ログから勉強した日付を抜き出す
