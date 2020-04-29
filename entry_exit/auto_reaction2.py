@@ -42,11 +42,11 @@ async def on_message(message):
 #            slotresult2 = 0
 #            slotresult3 = 0
             slotresult1 = intRandom(slot1)
-            await addReaction(message,slot1,0)
+            await addReaction(message,slot1,slotresult1)
             slotresult2 = intRandom(slot2)
-            await addReaction(message,slot2,0)
+            await addReaction(message,slot2,slotresult2)
             slotresult3 = intRandom(slot3)
-            await addReaction(message,slot3,0)
+            await addReaction(message,slot3,slotresult3)
         if slotresult1 == 0 and slotresult2 == 0 and slotresult3 == 0:
             alert_channel = client.get_channel(CHANNEL)
             now = datetime.utcnow() + timedelta(hours=9)
