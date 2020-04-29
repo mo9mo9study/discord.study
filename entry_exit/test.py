@@ -1,6 +1,6 @@
 import os
 import setting
-import discord1
+import discord
 
 TOKEN = cToken
 
@@ -14,7 +14,11 @@ TOKEN = cToken
 
 client = discord.Client()
 @client.event
-async def on_voice_state_update(member, before, after):
-    print(member)
-
+#async def on_voice_state_update(member, before, after):
+#    print(member)
+async def on_message(message):
+    print('~~~~~~~~~~~~~~~~~~~')
+    print(message)
+    print('~~~~~~~~~~~~~~~~~~~')
+    print(message.guild.member.users)
 client.run(TOKEN)
