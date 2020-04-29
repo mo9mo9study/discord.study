@@ -1,12 +1,12 @@
 # import mimetypes
-#import magic
+import magic
 import os
 import setting
-from datetime import date, datetime, timedelta
-
 import discord
+from datetime import date, datetime, timedelta
 from discord.ext import tasks
 from dateutil.relativedelta import relativedelta
+
 # testroleiギルドの[テストBOT007]にて起動
 TOKEN = setting.tToken
 CHANNEL = setting.tChannel
@@ -55,20 +55,21 @@ def getMonth(y, m):
         return 0
 
 def getLastMonthValiable(request):
-    lastMonth = datetime.today() - relativedelta(months=1,)
-    lastMonth_YM = datetime.strftime(datetime.today(), '%Y-%m') #ex)2020-03
-    lastMonth_Y = int(datetime.strftime(datetime.today(), '%Y')) #ex)2020
-    lastMonth_M = int(datetime.strftime(datetime.today(), '%m')) #ex)3
+    thisMonth_YMFirstday = datetime(int(datetime.strftime(datetime.today(),'%Y')), int(datetime.strftime(datetime.today(),'%m')), 1) #ex)2020-03
+    lastMonth_Y = int(datetime.strftime(datetime.today() - relativedelta(months=1), '%Y')) #ex)2020
+    lastMonth_M = int(datetime.strftime(datetime.today() - relativedelta(months=1), '%m')) #ex)3
+    lastMonth_YMFirstday = datetime(lastMonth_Y, lastMonth_M , 1) #ex)2020-03-01
     lastMonth_Days = getMonth(lastMonth_Y, lastMonth_M)
-    if request == 't':
-        return lastMonth
-    if request == 'ym':
-        return lastMonth_YM
-    if request == 'y':
-        return lastMonth_Y
-    if request == 'm':
-        return lastMonth_M
-    if request == 'd':
+#    print('-----> debug')
+#    print('lastMonth_Y: ',lastMonth_Y)
+#    print('lastMonth_M: ',lastMonth_M)
+#    print('lastMonth_YMFirstday: ',lastMonth_YMFirstday)
+#    print('-----> debug')
+    if request == 'thisMonth_YMFirstday':
+        return thisMonth_YMFirstday
+    if request == 'lastMonth_YMFirstday':
+        return lastMonth_YMFirstday
+    if request == 'D':
         return lastMonth_Days
 
 
@@ -81,8 +82,8 @@ def minutes2time(m):
 
 def arr_days(today): #対象月の日付を日数分配列に格納
     days = []
-    for i in reversed(range(1, getLastMonthValiable('d'))):
-        day = today - timedelta(days=i)
+    for i in reversed(range(1, getLastMonthValiable('D')+1)):
+        day = getLastMonthValiable('thisMonth_YMFirstday') - relativedelta(days=i)
         print(day)
         days.append(datetime.strftime(day, '%Y-%m-%d'))
     return days
@@ -95,8 +96,9 @@ def serialize_log(*args, end="\n"):
 
 def construct_user_record(user_name, studyMonth_day, sum_study_time):
     userMonthResult = serialize_log("Name：", user_name)
-    userMonthResult += serialize_log("　勉強した日付：", str(studyMonth_day))
-    userMonthResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)))
+    #userMonthResult += serialize_log("　勉強した日付：", str(studyMonth_day))
+    print("(",user_name,")","　勉強した日付：", str(studyMonth_day))
+    userMonthResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)),"(勉強日数：",len(studyMonth_day),")")
     return userMonthResult
 
 
@@ -105,7 +107,7 @@ def compose_user_records(strtoday, days, users_log):
 #    month_result = serialize_log("<@603567991132782592>") # デバック用にSuPleiades宛にメンション
     month_result += "```\n"  # コードブロック始まり
     month_result += serialize_log("今日の日付：", strtoday)
-    month_result += serialize_log("先週の日付：", lastMonth_YM, "-01~", days[-1])
+    month_result += serialize_log("先月の日付：", getLastMonthValiable('lastMonth_YMFirstday'),"~", days[-1])
     for user_log in users_log:
         month_result += "====================\n"
         month_result += user_log
@@ -200,7 +202,7 @@ client = discord.Client()
 
 @client.event
 async def on_message(message):
-    if message.content.startswith("/Week_Result"):
+    if message.content.startswith("/Month_Result"):
         if message.author.id != 603567991132782592:
             print('管理者(SuPleiades)以外のメンバーが実行しました')
             return
@@ -215,7 +217,7 @@ async def on_message(message):
 @tasks.loop(seconds=60)
 async def post_month_result():
     if datetime.now().strftime('%H:%M') == "07:30":
-        if date.today().weekday() == 0:
+        if datetime.now().strftime('%d') == '1':
             print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
             channel = client.get_channel(CHANNEL)
             await channel.send(create_month_result())
@@ -223,4 +225,4 @@ async def post_month_result():
 
 post_month_result.start()
 
-#client.run(TOKEN)
+client.run(TOKEN)
