@@ -1,4 +1,3 @@
-# import mimetypes
 import magic
 import os
 import setting
@@ -8,13 +7,13 @@ from discord.ext import tasks
 from dateutil.relativedelta import relativedelta
 
 # testroleiギルドの[テストBOT007]にて起動
-TOKEN = setting.tToken
-CHANNEL = setting.tChannel
-SERVER = setting.tServer
+#TOKEN = setting.tToken
+#CHANNEL = setting.tChannel
+#SERVER = setting.tServer
 
-#TOKEN = setting.dToken
-#CHANNEL = setting.wChannel
-#SERVER = setting.dServer
+TOKEN = setting.dToken
+CHANNEL = setting.mChannel
+SERVER = setting.dServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
 
 ## 今後使えそうだから残してみる、不要なら削除
@@ -58,7 +57,7 @@ def getLastMonthValiable(request):
     thisMonth_YMFirstday = datetime(int(datetime.strftime(datetime.today(),'%Y')), int(datetime.strftime(datetime.today(),'%m')), 1) #ex)2020-03
     lastMonth_Y = int(datetime.strftime(datetime.today() - relativedelta(months=1), '%Y')) #ex)2020
     lastMonth_M = int(datetime.strftime(datetime.today() - relativedelta(months=1), '%m')) #ex)3
-    lastMonth_YMFirstday = datetime(lastMonth_Y, lastMonth_M , 1) #ex)2020-03-01
+    lastMonth_YMFirstday = date(lastMonth_Y, lastMonth_M , 1) #ex)2020-03-01
     lastMonth_Days = getMonth(lastMonth_Y, lastMonth_M)
 #    print('-----> debug')
 #    print('lastMonth_Y: ',lastMonth_Y)
@@ -106,7 +105,7 @@ def compose_user_records(strtoday, days, users_log):
     month_result = serialize_log("@everyone ")
 #    month_result = serialize_log("<@603567991132782592>") # デバック用にSuPleiades宛にメンション
     month_result += "```\n"  # コードブロック始まり
-    month_result += serialize_log("今日の日付：", strtoday)
+    month_result += serialize_log("取得日：", strtoday)
     month_result += serialize_log("先月の日付：", getLastMonthValiable('lastMonth_YMFirstday'),"~", days[-1])
     for user_log in users_log:
         month_result += "====================\n"
@@ -121,13 +120,6 @@ def read_file(file_path):
     lines_strip = [line.strip() for line in lines]
     return lines_strip
 
-# 削除予定
-#def exclude_non_txt(file_list):
-#    for file in file_list:
-#        mime = mimetypes.guess_type(file)
-#        if mime[0] != 'text/plain':
-#            file_list.remove(file)
-#    return file_list
 
 def exclude_non_txt(file_list):
     file_list_result = list(file_list)
@@ -216,8 +208,9 @@ async def on_message(message):
 
 @tasks.loop(seconds=60)
 async def post_month_result():
-    if datetime.now().strftime('%H:%M') == "07:30":
-        if datetime.now().strftime('%d') == '1':
+    if datetime.now().strftime('%H:%M') == "07:35":
+        if datetime.now().strftime('%d') == '01':
+            print('実行日: ', datetime.now().strftime('%d'))
             print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
             channel = client.get_channel(CHANNEL)
             await channel.send(create_month_result())
