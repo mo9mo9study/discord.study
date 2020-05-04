@@ -3,5 +3,5 @@
 __pycache__
 test.*
 
-/timelog/
+timelog/*
 node_modules
