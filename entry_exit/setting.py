@@ -31,6 +31,8 @@ dChannel = int(os.environ.get("DISCORD_CHANNEL_ID"))
 sChannel = int(os.environ.get("SLOT_RESULT_CHANNEL_ID"))
 ## 週間勉強集計
 wChannel = int(os.environ.get("WEEK_RECORD_CHANNEL_ID"))
+## 月間勉強集計
+mChannel = int(os.environ.get("MONTH_RECORD_CHANNEL_ID"))
 
 # role
 tServer = int(os.environ.get("TEST_SEVER_ID"))
