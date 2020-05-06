@@ -89,7 +89,7 @@ client.on('message', message => {
 //    message.react('💩');
 
     // 人のメッセージの中に特定の文字列(今回なら!rolesmanagement)なら処理をする
-    if(message.content === '!rolesmanagement') {
+    if(message.content === '¥rolesmanagement') {
         console.log('---command---');
         let channel = message.channel;
         let author = message.author.username;
