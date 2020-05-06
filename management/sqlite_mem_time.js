@@ -37,6 +37,22 @@ const select_all = () => {
 //   '${voicechannel_lastleave_datetime}',
 //   '{message_lastsent_datetime}',
 //`};
+
+
+//unixtime(ms)をDate型(YYYY-MM-DD hh:mm:dd)に変換する
+const unixtimemsfDate = (unixtime_ms) => {
+    var d = new Date(parseInt(unixtime_ms,10));
+    var year = d.getFullYear();
+    var month = ( ( d.getMonth() + 1 ) < 10 ) ? '0' + (d.getMonth() + 1) : d.getMonth() + 1;
+    var day  = ( d.getDate() < 10 ) ? '0' + d.getDate() : d.getDate();
+    var hour = ( d.getHours()   < 10 ) ? '0' + d.getHours()   : d.getHours();
+    var min  = ( d.getMinutes() < 10 ) ? '0' + d.getMinutes() : d.getMinutes();
+    var sec   = ( d.getSeconds() < 10 ) ? '0' + d.getSeconds() : d.getSeconds();
+    let user_datetime = year + '-' + month + '-' + day + ' ' + hour + ':' + min + ':' + sec ;
+    return user_datetime;
+}
+
+
 // データゼロ想定の書き込み
 const insert_member = (userid, username, guild_join_datetime) => {
     db.serialize(() => {
@@ -60,7 +76,13 @@ const insert_member = (userid, username, guild_join_datetime) => {
                     sql.run();
                     console.log(`${userid}(${username})を新規追加(INSERT)しました`);
                 }else{
-                    console.log(`既にDBに${userid}(${username})が存在します`);
+                    let sql = db.prepare(
+                        "UPDATE mem_time SET guild_join_datetime = ? WHERE userid = ?",
+                        guild_join_datetime, userid
+                        );
+                    sql.run();
+                    console.log(`${userid}(${username})を更新(UPDATE)しました`);
+                    console.log(`guild_join_datetime: ${guild_join_datetime}`);
                 }
             }
         });
@@ -89,7 +111,7 @@ client.on('message', message => {
             insert_member(
                 name.user.id,
                 name.user.username,
-                name.joinedTimestamp
+                unixtimemsfDate(name.joinedTimestamp)
             )
             console.log('------------------------')
             console.log('name.user.id: ',name.user.id);
