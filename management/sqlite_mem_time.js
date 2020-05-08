@@ -4,6 +4,7 @@ const sqlite = require('sqlite3').verbose();
 
 const env = process.env;
 const TOKEN = env.CRON_BOT_TOKEN;
+const SERVER = env.DISCORD_SEVER_ID
 const client = new Discord.Client();
 const db = new sqlite.Database('/home/ec2-user/sqlite3/mokumoku_online_studyroom.sqlite3');
 
@@ -54,9 +55,25 @@ const unixtimemsfDate = (unixtime_ms) => {
 
 
 // データゼロ想定の書き込み
-const insert_member = (userid, username, guild_join_datetime) => {
+const upsert_member = ( userid, username, guild_join_datetime, voicechannel_lastjoin_datetime, voicechannel_lastleave_datetime, message_lastsent_datetime) => {
     db.serialize(() => {
-        db.each("SELECT * FROM mem_time WHERE userid = ? and username = ?",[userid,username],(error, row) => {
+        const parameter = {
+            $userid : userid,
+            $username : username,
+            $guild_join_datetime : guild_join_datetime,
+            $voicechannel_lastjoin_datetime : voicechannel_lastjoin_datetime,
+            $voicechannel_lastleave_datetime : voicechannel_lastleave_datetime,
+            $message_lastsent_datetime : message_lastsent_datetime
+        }
+        console.log('parameter: ',parameter);
+        let sql;
+        //guild_join_datetime ? : ;
+        //voicechannel_lastjoin_datetime ? : ;
+        //voicechannel_lastleave_datetime ? : ;
+        if(message_lastsent_datetime){
+            sql = "UPDATE mem_time SET message_lastsent_datetime = $message_lastsent_datetime WHERE userid = $userid"
+        }
+        db.each("select * from mem_time where userid = ?",[userid],(error, row) => {
             if(error){
                 console.log('Error!:', error);
                 return;
@@ -73,14 +90,20 @@ const insert_member = (userid, username, guild_join_datetime) => {
                         "INSERT INTO mem_time(userid, username,guild_join_datetime) VALUES(?,?,?)",
                         userid, username, guild_join_datetime,
                         );
+                    //sql.run(parametor);
                     sql.run();
                     console.log(`${userid}(${username})を新規追加(INSERT)しました`);
                 }else{
-                    let sql = db.prepare(
-                        "UPDATE mem_time SET guild_join_datetime = ? WHERE userid = ?",
-                        guild_join_datetime, userid
-                        );
-                    sql.run();
+                    //////"UPDATE mem_time SET guild_join_datetime = $guild_join_datetime WHERE userid = $userid"
+                    //let data = db.prepare(
+                    //    "UPDATE mem_time SET message_lastsent_datetime = $message_lastsent_datetime WHERE userid = $userid"
+                    //   );
+                    //////    "UPDATE mem_time SET message_lastsent_datetime = $message_lastsent_datetime WHERE userid = $userid"
+                    const para = {
+                        $userid : userid,
+                        $message_lastsent_datetime : message_lastsent_datetime
+                    };
+                    db.run("UPDATE mem_time SET message_lastsent_datetime = $message_lastsent_datetime WHERE userid = $userid",para);
                     console.log(`${userid}(${username})を更新(UPDATE)しました`);
                     console.log(`guild_join_datetime: ${guild_join_datetime}`);
                 }
@@ -99,31 +122,106 @@ const insert_member = (userid, username, guild_join_datetime) => {
 //        );
     });
 } 
+
+
+//ボイスチャンネル参加時
+client.on('voiceStateUpdate', (before, after) => {
+    let userid,
+        username,
+        guild_join_datetime,
+        voicechannel_lastjoin_datetime,
+        voicechannel_lastleave_datetime,
+        message_lastsent_datetime;
+    userid = after.id;
+    username = after.guild.members.cache.get(userid).user.username
+    if( after.guild.id === SERVER && (before.channelID != after.channelID) ) {
+        console.log('viceStateUpdate')
+        if( before.channelID === null ){
+            console.log(`${username}(${userid})がボイスチャンネルに参加しました`);
+        }
+        if( after.channelID === null ){
+            console.log(`${username}(${userid})がボイスチャンネル から退室しました`);
+        } 
+    }
+});
+
+
 // 送信されたメッセージをトリガーに処理開始
 client.on('message', message => {
+    console.log(`message.createdTimestamp: ${unixtimemsfDate(message.createdTimestamp)}`)
     let channel = message.channel;
     let author = message.author.username;
+     
+    // 初期化
+    let userid,
+        username,
+        guild_join_datetime,
+        voicechannel_lastjoin_datetime,
+        voicechannel_lastleave_datetime,
+        message_lastsent_datetime;
+    // メッセージ送信者の送信時刻を記録する
+    userid = message.author.id;
+    username = message.author.username;
+    message_lastsent_datetime = unixtimemsfDate(message.createdTimestamp);
+    console.log(`userid: ${userid}`);
+    console.log(`username: ${username}`);
+    upsert_member(
+        userid,
+        username,
+        guild_join_datetime,
+        voicechannel_lastjoin_datetime,
+        voicechannel_lastleave_datetime,
+        message_lastsent_datetime
+    )
+
+
+    if(message.content === 'testtest'){
+        let value = '603567991132782592';//str
+        const name = message.guild.members.cache.get(value);
+        userid = name.user.id;
+        username = name.user.username;
+        guild_join_datetime = unixtimemsfDate(name.joinedTimestamp);
+        upsert_member(
+            userid,
+            username,
+            guild_join_datetime,
+            voicechannel_lastjoin_datetime,
+            voicechannel_lastleave_datetime,
+            message_lastsent_datetime
+        )
+        console.log('------------------------')
+        console.log('name.user.id: ',userid);
+        console.log('name.user.username: ',username);
+        console.log('name.joinedTimestamp: ',guild_join_datetime);
+    }
+  
     if(message.content === '¥all_insert_jointime') {
         console.log('---command---');
         const members = message.guild.members.cache.keyArray();
-        members.forEach(function(value) {
-            const name = message.guild.members.cache.get(value);
-            insert_member(
-                name.user.id,
-                name.user.username,
-                unixtimemsfDate(name.joinedTimestamp)
-            )
-            console.log('------------------------')
-            console.log('name.user.id: ',name.user.id);
-            console.log('name.user.username: ',name.user.username);
-            console.log('name.joinedTimestamp: ',name.joinedTimestamp);
+//        members.forEach(function(value) {
+//            const name = message.guild.members.cache.get(value);
+//            userid = name.user.id;
+//            username = name.user.username;
+//            guild_join_datetime = unixtimemsfDate(name.joinedTimestamp);
+//            upsert_member(
+//                userid,
+//                username,
+//                guild_join_datetime,
+//                voicechannel_lastjoin_datetime,
+//                voicechannel_lastleave_datetime,
+//                message_lastsent_datetime
+//            )
+//            console.log('------------------------')
+//            console.log('name.user.id: ',userid);
+//            console.log('name.user.username: ',username);
+//            console.log('name.joinedTimestamp: ',guild_join_datetime);
+//        });
 //    // メッセージへリアクション
 //    message.reply(reply_text)
 //        .then(message => console.log(`Sent message: ${reply_text}`))
 //        .catch(console.error);
 //    message.delete({ timeout: 1000 })
 //    return;
-        });
     }
 });
 
