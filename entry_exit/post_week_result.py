@@ -3,6 +3,7 @@ import magic
 import os
 import setting
 from datetime import date, datetime, timedelta
+import re
 
 import discord
 from discord.ext import tasks
@@ -38,7 +39,16 @@ def serialize_log(*args, end="\n"):
 
 def construct_user_record(user_name, studyWeekday, sum_study_time):
     userWeekResult = serialize_log("Name：", user_name)
-    userWeekResult += serialize_log("　勉強した日付：", str(studyWeekday))
+    
+    #ex) 配列内の[04-20]月-日の文字列を[20]0埋めしない日に変換
+    studyDay = []
+    for item in studyWeekday:
+        item_mod = re.sub(r'(^[0-9]{2})-0?([1-9]?[0-9]$)',r'\2',item)
+        studyDay.append(item_mod)
+
+    #ex) [04-20]
+    #userWeekResult += serialize_log("　勉強した日付：", str(studyWeekday))
+    userWeekResult += serialize_log("　勉強した日付：", str(studyDay))
     userWeekResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)))
     return userWeekResult
 
@@ -137,8 +147,9 @@ def create_week_result():
     week_result = compose_user_records(strtoday, days, user_records)
     return week_result
 
-
-print(create_week_result())
+str_weekResult = create_week_result()
+print(len(str_weekResult))
+print(str_weekResult)
 client = discord.Client()
 
 @client.event
