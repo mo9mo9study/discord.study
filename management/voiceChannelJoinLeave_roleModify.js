@@ -13,13 +13,7 @@ client.on('ready', () => {
 
 
 client.on('voiceStateUpdate', (before, after) => {
-    let userid,
-        username,
-        guild_join_datetime,
-        voicechannel_lastjoin_datetime,
-        voicechannel_lastleave_datetime,
-        message_lastsent_datetime;
-    userid = after.id;
+    const userid = after.id;
     const member = after.guild.members.cache.get(userid)
     const roleid = '710333297598922752';
     console.log('before: ',before.channelID,'(after) ',after.channelID)
