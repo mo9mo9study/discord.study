@@ -194,7 +194,7 @@ client = discord.Client()
 
 @client.event
 async def on_message(message):
-    if message.content.startswith("/Month_Result"):
+    if message.content.startswith("¥Month_Result"):
         if message.author.id != 603567991132782592:
             print('管理者(SuPleiades)以外のメンバーが実行しました')
             return
