@@ -15,6 +15,7 @@ TOKEN = setting.dToken
 CHANNEL = setting.wChannel
 SERVER = setting.dServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
+MAX_SEND_MESSAGE_LENGTH = 2000
 
 
 def minutes2time(m):
@@ -54,15 +55,21 @@ def construct_user_record(user_name, studyWeekday, sum_study_time):
 
 
 def compose_user_records(strtoday, days, users_log):
-    week_result = serialize_log("@everyone ")
-#    week_result = serialize_log("<@603567991132782592>") # デバック用にSuPleiades宛にメンション
-    week_result += "```\n"  # コードブロック始まり
-    week_result += serialize_log("今日の日付：", strtoday)
-    week_result += serialize_log("先週の日付：", days[0], "~", days[-1])
+    start_message = serialize_log("@everyone ")
+    start_message += "```\n"
+    start_message += serialize_log("今日の日付：", strtoday)
+    start_message += serialize_log("先週の日付：", days[0], "~", days[-1])
+    end_message = "```"
+    separate = "====================\n"
+
+    week_result = [start_message]
+
     for user_log in users_log:
-        week_result += "====================\n"
-        week_result += user_log
-    week_result += "```"  # コードブロック終わり
+        if len(week_result[-1] += (separate + userlog)) >= MAX_SEND_MESSAGE_LENGTH - end_message:
+            week_result[-1] += end_message
+            week_result.append('')
+        week_result[-1] += separate + user_log
+    week_result[-1] += end_message
     return week_result
 
 
@@ -155,15 +162,14 @@ client = discord.Client()
 @client.event
 async def on_message(message):
     if message.content.startswith("/Week_Result"):
-        if message.author.id != 603567991132782592:
-            print('管理者(SuPleiades)以外のメンバーが実行しました')
-            return
+      if message.author.id != 603567991132782592:
+        print('管理者(SuPleiades)以外のメンバーが実行しました')
+        return
         print(f'手動週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
         channel = client.get_channel(CHANNEL)
-## デバック用
-#        strResult = create_week_result()
-#        print(strResult)
-        await channel.send(create_week_result())
+        week_results = create_week_result()
+        for week_result in week_results:
+            await channel.send(week_result)
 
 
 @tasks.loop(seconds=60)
@@ -172,7 +178,9 @@ async def post_week_result():
         if date.today().weekday() == 0:
             print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
             channel = client.get_channel(CHANNEL)
-            await channel.send(create_week_result())
+            week_results = create_week_result()
+            for week_result in week_results:
+                await channel.send(week_result)
 
 
 post_week_result.start()
