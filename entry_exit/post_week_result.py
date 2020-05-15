@@ -55,21 +55,23 @@ def construct_user_record(user_name, studyWeekday, sum_study_time):
 
 
 def compose_user_records(strtoday, days, users_log):
+    code_block = "```"
+    separate = "====================\n"
+
     start_message = serialize_log("@everyone ")
-    start_message += "```\n"
+    start_message += code_block + "\n"
     start_message += serialize_log("今日の日付：", strtoday)
     start_message += serialize_log("先週の日付：", days[0], "~", days[-1])
-    end_message = "```"
-    separate = "====================\n"
 
     week_result = [start_message]
 
     for user_log in users_log:
-        if len(week_result[-1] += (separate + userlog)) >= MAX_SEND_MESSAGE_LENGTH - len(end_message):
-            week_result[-1] += end_message
+        if len(week_result[-1] += (separate + userlog)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
+            week_result[-1] += code_block # end code_block
             week_result.append('')
+            week_result[-1] += code_block # start code_block
         week_result[-1] += separate + user_log
-    week_result[-1] += end_message
+    week_result[-1] += code_block
     return week_result
 
 
