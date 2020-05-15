@@ -65,7 +65,7 @@ def compose_user_records(strtoday, days, users_log):
     week_result = [start_message]
 
     for user_log in users_log:
-        if len(week_result[-1] += (separate + userlog)) >= MAX_SEND_MESSAGE_LENGTH - end_message:
+        if len(week_result[-1] += (separate + userlog)) >= MAX_SEND_MESSAGE_LENGTH - len(end_message):
             week_result[-1] += end_message
             week_result.append('')
         week_result[-1] += separate + user_log
