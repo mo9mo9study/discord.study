@@ -65,8 +65,10 @@ def compose_user_records(strtoday, days, users_log):
 
     week_result = [start_message]
 
+    for i in range(10):
+        week_result[-1] += 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     for user_log in users_log:
-        if len(week_result[-1] += (separate + userlog)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
+        if len(week_result[-1] + (separate + user_log)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
             week_result[-1] += code_block # end code_block
             week_result.append('')
             week_result[-1] += code_block # start code_block
@@ -157,16 +159,22 @@ def create_week_result():
     return week_result
 
 str_weekResult = create_week_result()
-print(len(str_weekResult))
 print(str_weekResult)
+print(len(str_weekResult))
+print(len(str_weekResult))
+for strR in str_weekResult:
+    print(strR)
+    print(len(strR))
+
 client = discord.Client()
 
 @client.event
 async def on_message(message):
-    if message.content.startswith("/Week_Result"):
-      if message.author.id != 603567991132782592:
-        print('管理者(SuPleiades)以外のメンバーが実行しました')
-        return
+    print('start')
+    if message.content.startswith("¥Week_Result"):
+        if message.author.id != 603567991132782592:
+            print('管理者(SuPleiades)以外のメンバーが実行しました')
+            return
         print(f'手動週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
         channel = client.get_channel(CHANNEL)
         week_results = create_week_result()
