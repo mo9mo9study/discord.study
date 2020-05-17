@@ -24,7 +24,8 @@ def minutes2time(m):
     result_study_time = str(hour) + "時間" + str(minute) + "分"
     return result_study_time
 
-
+##[検討]ここをいつ起動しても先週の月〜日を指す方法に変更するのもあり
+## 現在は、1日前から遡って7日分取得する方法
 def arr_days(today):
     days = []
     for i in reversed(range(1, 8)):
@@ -81,13 +82,6 @@ def read_file(file_path):
     lines_strip = [line.strip() for line in lines]
     return lines_strip
 
-# 削除予定
-#def exclude_non_txt(file_list):
-#    for file in file_list:
-#        mime = mimetypes.guess_type(file)
-#        if mime[0] != 'text/plain':
-#            file_list.remove(file)
-#    return file_list
 
 def exclude_non_txt(file_list):
     file_list_result = list(file_list)
