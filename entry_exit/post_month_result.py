@@ -116,10 +116,9 @@ def compose_user_records(strtoday, days, users_log):
     for user_log in users_log:
         if len(month_result[-1] + (separate + user_log)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
               month_result[-1] += code_block # end code_block
-              month_result.append('')
-              month_result[-1] += code_block # start code_block
+              month_result.append(code_block) # start code_block
         month_result[-1] += separate + user_log
-    month_result += code_block
+    month_result[-1] += code_block # end code_block
     return month_result
 
 
