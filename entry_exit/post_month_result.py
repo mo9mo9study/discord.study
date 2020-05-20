@@ -15,6 +15,7 @@ TOKEN = setting.dToken
 CHANNEL = setting.mChannel
 SERVER = setting.dServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
+MAX_SEND_MESSAGE_LENGTH = 2000
 
 ## 今後使えそうだから残してみる、不要なら削除
 ##def getCalender(y, m, d):
@@ -102,15 +103,23 @@ def construct_user_record(user_name, studyMonth_day, sum_study_time):
 
 
 def compose_user_records(strtoday, days, users_log):
-    month_result = serialize_log("@everyone ")
-#    month_result = serialize_log("<@603567991132782592>") # デバック用にSuPleiades宛にメンション
-    month_result += "```\n"  # コードブロック始まり
-    month_result += serialize_log("取得日：", strtoday)
-    month_result += serialize_log("先月の日付：", getLastMonthValiable('lastMonth_YMFirstday'),"~", days[-1])
+    code_block = "```"
+    separate = "====================\n"
+
+    start_message = serialize_log("@everyone ")
+    start_message += code_block + "\n"
+    start_message += serialize_log("取得日：", strtoday)
+    start_message += serialize_log("先月の日付：", getLastMonthValiable('lastMonth_YMFirstday'),"~", days[-1])
+
+    month_result = [start_message]
+
     for user_log in users_log:
-        month_result += "====================\n"
-        month_result += user_log
-    month_result += "```"  # コードブロック終わり
+        if len(month_result[-1] + (separate + user_log)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
+              month_result[-1] += code_block # end code_block
+              month_result.append('')
+              month_result[-1] += code_block # start code_block
+        month_result[-1] += separate + user_log
+    month_result += code_block
     return month_result
 
 
@@ -198,12 +207,11 @@ async def on_message(message):
         if message.author.id != 603567991132782592:
             print('管理者(SuPleiades)以外のメンバーが実行しました')
             return
-        print(f'手動週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+        print(f'手動月間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
         channel = client.get_channel(CHANNEL)
-## デバック用
-#        strResult = create_month_result()
-#        print(strResult)
-        await channel.send(create_month_result())
+        month_results = create_month_result()
+        for month_result in month_results:
+            await channel.send(month_result)
 
 
 @tasks.loop(seconds=60)
@@ -211,9 +219,11 @@ async def post_month_result():
     if datetime.now().strftime('%H:%M') == "07:35":
         if datetime.now().strftime('%d') == '01':
             print('実行日: ', datetime.now().strftime('%d'))
-            print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+            print(f'月間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
             channel = client.get_channel(CHANNEL)
-            await channel.send(create_month_result())
+            month_results = create_month_result()
+            for month_result in month_results:
+                await channel.send(month_result)
 
 
 post_month_result.start()
