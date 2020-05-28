@@ -1,0 +1,32 @@
+---
+- name: install nodenv
+  become: no
+  git:
+    repo: https://github.com/nodenv/nodenv.git
+    dest: ~/.nodenv
+
+- name: add PATH
+  become: no
+  lineinfile:
+    line: export PATH="$HOME/.nodenv/bin:$PATH"
+    dest: "~/.bashrc"
+
+- name: add eval
+  become: no
+  lineinfile:
+    line: eval "$(nodenv init -)"
+    dest: "~/.bashrc"
+
+- name: install node-build
+  become: no
+  git:
+    repo: https://github.com/nodenv/node-build.git
+    dest: ~/.nodenv/plugins/node-build
+
+- name: install node version
+  become: no
+  command: ~/.nodenv/bin/nodenv install {{ node_version }}
+
+- name: set global node version
+  become: no
+  shell: ~/.nodenv/bin/nodenv global {{ node_version }}
