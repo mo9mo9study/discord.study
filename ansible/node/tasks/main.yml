@@ -32,3 +32,7 @@
 - name: set global node version
   become: no
   shell: nodenv global {{ node_version }}
+
+- name: install pyenv
+  become: no
+  shell: anyenv install pyenv
