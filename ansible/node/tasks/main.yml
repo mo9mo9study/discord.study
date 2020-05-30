@@ -1,32 +1,34 @@
 ---
-- name: install nodenv
+- name: install anyenv
   become: no
   git:
-    repo: https://github.com/nodenv/nodenv.git
-    dest: ~/.nodenv
+    repo: https://github.com/riywo/anyenv
+    dest: ~/.anyenv
 
 - name: add PATH
   become: no
   lineinfile:
-    line: export PATH="$HOME/.nodenv/bin:$PATH"
+    line: export PATH="$HOME/.anyenv/bin:$PATH"
     dest: "~/.bashrc"
 
-- name: add eval
+- name: add anyenv eval
   become: no
   lineinfile:
-    line: eval "$(nodenv init -)"
+    line: eval "$(anyenv init -)"
     dest: "~/.bashrc"
 
-- name: install node-build
+- name: install nodenv
   become: no
-  git:
-    repo: https://github.com/nodenv/node-build.git
-    dest: ~/.nodenv/plugins/node-build
+  shell: anyenv install nodenv
+
+- name: create default-packages
+  become: no
+  shell: touch ~/.anyenv/envs/nodenv/default-packages
 
 - name: install node version
   become: no
-  command: ~/.nodenv/bin/nodenv install {{ node_version }}
+  command: nodenv install {{ node_version }}
 
 - name: set global node version
   become: no
-  shell: ~/.nodenv/bin/nodenv global {{ node_version }}
+  shell: nodenv global {{ node_version }}
