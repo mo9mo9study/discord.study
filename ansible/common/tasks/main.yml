@@ -1,0 +1,10 @@
+---
+- name: yum update
+  shell: yum update -y
+
+- name: install tools
+  yum:
+    name:
+      - vim
+      - git
+    state: present
