@@ -1,13 +1,11 @@
-require('dotenv').config()
+require('dotenv').config() 
 const Discord = require('discord.js');
 
 const env = process.env;
-const TOKEN = env.CRON_BOT_TOKEN;
+const TOKEN = env.MANAGER_BOT_TOKEN;
 const client = new Discord.Client();
 
-client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
-});
+const deleteTimeout = 2000;
 
 const emojiRoleMap = {
     '🇦': 'RSS_AWS技術ブログ',
@@ -18,8 +16,10 @@ const emojiRoleMap = {
 //    '🇫': 'UC',
 //    '🇬': 'C'
 
+
 const rolesmanagement_text = () => {
-    let strText = '\n対応した役職を付与します\n';
+    //let strText = '\n対応した役職を付与します\n';
+    let strText = ''
     const tmp = Object.entries(emojiRoleMap);
     for (const [ key, value ] of tmp) {
         strText += `${key} : #${value}\n`;
@@ -27,6 +27,60 @@ const rolesmanagement_text = () => {
     strText += `(※ ✅ : 自動で付与/剥奪できる役職全てを剥奪します )\n`;
     return strText
 }
+
+
+const embedManegeMessage = { embed: {
+    color: 16757683,
+    title: '対応した役職を付与します',
+    description: rolesmanagement_text(),
+    fields: [
+        {
+            name: '[:regional_indicator_b: : RSS_AWS技術ブログ]',
+            value: '- #rss-aws-classmethod \n - #rss-aws-serverworks',
+            inline: true
+        },
+        {
+            name: '[:regional_indicator_b: :RSS_AWS公式]',
+            value: '-',
+            inline: true
+        },
+        {
+            name: '[:regional_indicator_c: : ]',
+            value: '-',
+            inline: true
+        },
+        {
+            name: '[:regional_indicator_d: : JOIN_gym ]',
+            value: '- #gym',
+            inline: true
+        }
+    ]
+}}
+
+
+const channelMessageAllDelete = async (channel) => {
+    // 直近100件のbotメッセージ一括削除
+    const messages = await channel.messages.fetch({ limit: 100 });
+    //const filtered = messages.filter(message => message.author.bot);
+    //message.channel.bulkDelete(filtered);
+    messages.map( m => {
+        try {
+        	m.delete()
+                .then(console.log(m.content,': メッセージを削除'))
+        } catch (err) {
+            console.error(err)
+        }
+    });
+}
+
+
+client.on('ready', () => {
+    const channelId = '704579339173494835';
+    const channel = client.channels.cache.get(channelId)
+    console.log(`Logged in as ${client.user.tag}!`);
+    channelMessageAllDelete(channel);
+    channel.send(embedManegeMessage);
+});
 
 // リアクション起動コード
 client.on('messageReactionRemove', async(reaction, user) => {
@@ -42,7 +96,9 @@ client.on('messageReactionRemove', async(reaction, user) => {
     // {未実装}
     if (reaction.emoji.name in emojiRoleMap) {
         const role = reaction.message.guild.roles.cache.find(role => role.name === emojiRoleMap[reaction.emoji.name]);
+        const reply = await reaction.message.channel.send(`${user.username}から役職[ ${role.name} ]を剥奪しました`)
         member.roles.remove(role)
+            .then(reply.delete({ timeout: deleteTimeout }));
     }
 })
 
@@ -53,14 +109,16 @@ client.on('messageReactionAdd', async (reaction, user) => {
     if (!channel) return console.log('channel が取得できません！');
     const member = await channel.guild.members.fetch(user);
     if (!member) return console.log('member が取得できません！');
-    console.log(`${reaction.message.guild} で ${user.tag} が ${reaction.emoji.name} をリアクションしました`);
+    console.log(` ${user.tag} が${reaction.message.channel.name}の(${reaction.message})に ${reaction.emoji.name} をリアクションしました`);
 
     // リアクション'✅'を行うことで[emojiRoleMap].valueの役職を全て剥奪
     if (reaction.emoji.name === '✅') {
+        const reply = await reaction.message.channel.send(`${user.username}から役職を全て剥奪しました`)
         Object.values(emojiRoleMap).map(value => {
             const role = reaction.message.guild.roles.cache.find(role => role.name === value);
-            member.roles.remove(role);
+            member.roles.remove(role)
         });
+	reply.delete({ timeout: deleteTimeout });
         return
     }
     // ボットのメッセージに絵文字リアクションしたかどうか判定
@@ -70,15 +128,18 @@ client.on('messageReactionAdd', async (reaction, user) => {
     // if (!bot) return 'bot の絵文字にリアクションしていません！'
     if (reaction.emoji.name in emojiRoleMap) {
         const role = reaction.message.guild.roles.cache.find(role => role.name === emojiRoleMap[reaction.emoji.name]);
+        const reply = await reaction.message.channel.send(`${user.username}に役職[ ${role.name} ]を付与しました`)
         member.roles.add(role)
+ 	    .then(reply.delete({ timeout: deleteTimeout }));
     }
 })
 
-client.on('message', message => {
+client.on('message', async message => {
     // ボットの場合は処理をしない
     console.log('---start---');
     if(message.author.bot) {
-        if(!message.content.includes('対応した役職を付与します')) return
+        if(message.embeds.length != 1) return
+        if(!message.embeds[0].title.includes('対応した役職を付与します')) return
         console.log('---bot---');
         let tmp = Object.entries(emojiRoleMap)
         for (let [ key, value ] of tmp) {
@@ -86,19 +147,17 @@ client.on('message', message => {
         }
         return;
     }
-//    message.react('💩');
-
     // 人のメッセージの中に特定の文字列(今回なら!rolesmanagement)なら処理をする
     if(message.content === '¥rolesmanagement') {
-        console.log('---command---');
         let channel = message.channel;
         let author = message.author.username;
-        let reply_text = rolesmanagement_text();
+        channelMessageAllDelete(channel)
+        console.log('---command---');
         // メッセージへリアクション
-        message.reply(reply_text)
-            .then(message => console.log(`Sent message: ${reply_text}`))
+        message.channel.send(embedManegeMessage) 
+            .then(message => console.log(`Sent message: ${message}`))
             .catch(console.error);
-        message.delete({ timeout: 1000 })
+        message.delete({ timeout: deleteTimeout })
         return;
     }
 });
