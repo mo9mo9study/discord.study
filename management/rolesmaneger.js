@@ -6,6 +6,7 @@ const TOKEN = env.MANAGER_BOT_TOKEN;
 const client = new Discord.Client();
 
 const deleteTimeout = 2000;
+const CHANNEL = env.AUTO_ROLE_CHANNEL_ID
 
 const emojiRoleMap = {
     '🇦': 'RSS_AWS技術ブログ',
@@ -24,7 +25,7 @@ const rolesmanagement_text = () => {
     for (const [ key, value ] of tmp) {
         strText += `${key} : #${value}\n`;
     }
-    strText += `(※ ✅ : 自動で付与/剥奪できる役職全てを剥奪します )\n`;
+    strText += `(※ 🗑️ : 自動で付与/剥奪できる役職全てを剥奪します )\n`;
     return strText
 }
 
@@ -75,8 +76,7 @@ const channelMessageAllDelete = async (channel) => {
 
 
 client.on('ready', () => {
-    const channelId = '704579339173494835';
-    const channel = client.channels.cache.get(channelId)
+    const channel = client.channels.cache.get(CHANNEL)
     console.log(`Logged in as ${client.user.tag}!`);
     channelMessageAllDelete(channel);
     channel.send(embedManegeMessage);
@@ -86,6 +86,7 @@ client.on('ready', () => {
 client.on('messageReactionRemove', async(reaction, user) => {
     const messageAuthorChannelId = reaction.message.channel.id
     const channel = await user.client.channels.fetch(messageAuthorChannelId);
+    if ( channel != CHANNEL ) return // 「役職自動付与」チャンネル以外で実行不可
     if (!channel) return console.log('channel が取得できません！');
     const member = await channel.guild.members.fetch(user);
     if (!member) return console.log('member が取得できません！');
@@ -106,13 +107,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return
     const messageAuthorChannelId = reaction.message.channel.id;
     const channel = await user.client.channels.fetch(messageAuthorChannelId);
+    if ( channel != CHANNEL ) return // 「役職自動付与」チャンネル以外で実行不可
     if (!channel) return console.log('channel が取得できません！');
     const member = await channel.guild.members.fetch(user);
     if (!member) return console.log('member が取得できません！');
     console.log(` ${user.tag} が${reaction.message.channel.name}の(${reaction.message})に ${reaction.emoji.name} をリアクションしました`);
-
-    // リアクション'✅'を行うことで[emojiRoleMap].valueの役職を全て剥奪
-    if (reaction.emoji.name === '✅') {
+    console.log('リアクション',reaction.emoji)
+    // リアクション'🗑️'を行うことで[emojiRoleMap].valueの役職を全て剥奪
+    if (reaction.emoji.name === '🗑️') {
         const reply = await reaction.message.channel.send(`${user.username}から役職を全て剥奪しました`)
         Object.values(emojiRoleMap).map(value => {
             const role = reaction.message.guild.roles.cache.find(role => role.name === value);
@@ -135,6 +137,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 })
 
 client.on('message', async message => {
+    if ( message.channel.id != CHANNEL ) return // 「役職自動付与」チャンネル以外で実行不可
     // ボットの場合は処理をしない
     console.log('---start---');
     if(message.author.bot) {
@@ -147,7 +150,7 @@ client.on('message', async message => {
         }
         return;
     }
-    // 人のメッセージの中に特定の文字列(今回なら!rolesmanagement)なら処理をする
+    // 人のメッセージの中に特定の文字列(今回なら¥rolesmanagement)なら処理をする
     if(message.content === '¥rolesmanagement') {
         let channel = message.channel;
         let author = message.author.username;
