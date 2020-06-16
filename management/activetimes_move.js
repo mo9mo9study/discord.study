@@ -19,48 +19,64 @@ categoryMove = (channels, channelid) => {
 }
 
 
-// 全てのtimes_を[分報チャンネル]カテゴリーに移動する
-// 戻す際にチャンネル名でソートした順番を引数に入れて、setPositionで変更する
-categoryAllMove = (channels, channelid, position) => {
-    const channel = channels.cache.get(channelid);
-    const beforePosition = channel.rawPosition
-    const categoryid = '673004651871993866'; // 分報チャンネル
-    // 現在のカテゴリーとの比較文必要か検討
-    if(!channel.parentID.includes(categoryid)) channel.edit({parentID: categoryid}); 
-    console.log('editchanne_info: ', channel.name ,' / ',beforePosition, ' --> ', channel.rawPosition,' (設定値)',position,typeof(position));
-}
+//// TODO:全てのtimes_を[分報チャンネル]カテゴリーに移動する
+//// 戻す際にチャンネル名でソートした順番を引数に入れて、setPositionで変更する
+//categoryAllMove = (channels, channelid, position) => {
+//    const channel = channels.cache.get(channelid);
+//    const beforePosition = channel.rawPosition
+//    const categoryid = '673004651871993866'; // 分報チャンネル
+//    // 現在のカテゴリーとの比較文必要か検討
+//    if(!channel.parentID.includes(categoryid)) channel.edit({parentID: categoryid}); 
+//    console.log('editchanne_info: ', channel.name ,' / ',beforePosition, ' --> ', channel.rawPosition,' (設定値)',position,typeof(position));
+//}
 
+categorySelectMove = (channels, channelid, categoryid) => {
+    const channel = channels.cache.get(channelid);
+    if(!channel.parentID.includes(categoryid)) channel.edit({parentID: categoryid}); 
+    console.log('editchanne_info: ', channel.name ,' --> ', channel.parentID);
+}
+      
 
 getTimesChannelsid = (message) => {
     const ownerChannelid = '673006702924136448';
     const channelsid = message.guild.channels.cache.keyArray();
-    const objChannelname_id = {};
-    const listChannelname = [];
-    const listChannelid = [];
+    const objChannelid = {"AlphaNum": [], "Etc": []};
+    //const listChannelname = [];
+    //const listChannelid = [];
     // timesのチャンネルをオブジェクトに入れる
     channelsid.map( id => {
         const channel = message.guild.channels.cache.get(id);
         if(channel.name.includes('times_')) {
-            objChannelname_id[channel.name] = channel.id;
+            if(channel.name.match(/^times_[a-zA-Z0-9].*$/)) {
+                // 英数字のカテゴリー用配列
+                console.log(`${channel.name}は[英数字]のカテゴリーに追加されました`);
+                objChannelid.AlphaNum.push(channel.id)
+            } else {
+                // その他カテゴリー用配列
+                console.log(`${channel.name}は[その他]のカテゴリーに追加されました`);
+                objChannelid.Etc.push(channel.id)
+            }
+            //objChannelname_id[channel.name] = channel.id;
         }
     });
-    // オブジェクトから名前だけの配列を作成
-    for(name in objChannelname_id) {
-        if(objChannelname_id.hasOwnProperty(name)) {
-          listChannelname.push(name);
-        }
-    }
-    listChannelname.sort()
-    // ソートした順で、名前と紐づくIDを配列に入れる
-    listChannelname.map( name => {
-        listChannelid.push(objChannelname_id[name]);
-    });
-    let index = listChannelid.indexOf(ownerChannelid);
-    if (index > -1) { // [times_supleiades]を配列の先頭移動する
-        listChannelid.splice(index, 1);
-        listChannelid.unshift(ownerChannelid)
-    }
-    return listChannelid
+    //// TODO:sortしようしうとした時の軌跡（オブジェクトから名前だけの配列を作成）
+    //for(name in objChannelname_id) {
+    //    if(objChannelname_id.hasOwnProperty(name)) {
+    //      listChannelname.push(name);
+    //    }
+    //}
+    //listChannelname.sort()
+    //// ソートした順で、名前と紐づくIDを配列に入れる
+    //listChannelname.map( name => {
+    //    listChannelid.push(objChannelname_id[name]);
+    //});
+    //let index = listChannelid.indexOf(ownerChannelid);
+    //if (index > -1) { // [times_supleiades]を配列の先頭移動する
+    //    listChannelid.splice(index, 1);
+    //    listChannelid.unshift(ownerChannelid)
+    //}
+    //return listChannelid
+    return objChannelid // obj = {"AlphaNum":[ ], "Etc": [ ]}
 }
 
 
@@ -71,14 +87,28 @@ client.on('message', message => {
     if(message.channel.name.includes('times_')) {
         categoryMove(channels, message.channel.id)
     }
-    if(message.author.id != '603567991132782592') return
+    if(message.author.id != message.channel.guild.ownerID) return
     if(message.content === '¥reset') {
-        if(message.author.id != '603567991132782592') return
         const allTimesId = getTimesChannelsid(message);
-        allTimesId.map(channelid => {
-            let index = allTimesId.indexOf(channelid)
-            categoryAllMove(channels, channelid, index);
-        });
+        console.log(allTimesId)
+        // カテゴリー「分報チャンネル（英数字）」に移動
+        allTimesId.AlphaNum.map(channelid => {
+            const channelname = channels.cache.get(channelid);
+            console.log(`${channelid} : ${channelname}`);
+            categorySelectMove(channels, channelid, '673004651871993866');
+        })
+        // カテゴリー「分報チャンネル（その他）」に移動
+        allTimesId.Etc.map(channelid => {
+            const channelname = channels.cache.get(channelid);
+            console.log(`${channelid} : ${channelname}`);
+            categorySelectMove(channels, channelid, '719095356218146879');
+        })
+        //TODO: allTimesId.map(channelid => {
+        //    let index = allTimesId.indexOf(channelid)
+        //    console.log('channelid : ', channelid)
+        //    //categoryAllMove(channels, channelid, index);
+        //});
+
     }
 });
 client.login(TOKEN);
