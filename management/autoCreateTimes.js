@@ -36,10 +36,10 @@ client.on('message', message => {
         } else {
             if( channels.length > 50 ) {
                 let alertMessage = `timesチャンネルが50個(現在：${channels.length}個)を超えました`;
-		// 管理者の文法チャンネルにメンション付きで連絡する機能
+                // 管理者の文法チャンネルにメンション付きで連絡する機能
                 const member = message.channel.guild.members.cache.get(message.channel.guild.ownerID);
                 // おいおいは、チャンネルのトピックにownerIDが含まれているチャンネルを選択するやり方にする
-		const channel = message.channel.guild.channels.cache.get('673006702924136448');
+                const channel = message.channel.guild.channels.cache.get('673006702924136448');
                 channel.send( alertMessage, {reply: member } )
                     .then(console.log(`${channel.name}に「分報チャンネル」の総数が50個を超えた旨を連絡しました`))
                     .catch(console.error);
@@ -56,8 +56,11 @@ client.on('message', message => {
 
 
 client.on('channelCreate', channel => {
+    console.log( `---> 新しく[ ${channel.name} ]チャンネルが作成されました` );
     const channelUserid = channel.topic;
     const member = channel.guild.members.cache.get(channelUserid);
+    console.log(member);
+    if( member == undefined ) return
     if( channel.name.includes('times_') ) {
         channel.send( sendMessage, {reply: member } )
             .then(console.log(`${channel.name}で${member.user.username}に「分報チャンネル」案内のメッセージを送りました`))
