@@ -114,7 +114,7 @@ client.on('message', message => {
 
 cron.schedule('0 0 2 * * *', () => {
     const date = new Date();
-    console.log(`${date.toLocaleString("ja")}に定期実行を開始しました`);
+    console.log(`${date.toLocaleString("ja")}にreset処理の定期実行を開始しました`);
     const guild = client.guilds.cache.get('603582455756095488');
     guild.channels.cache.get('673006702924136448').send(`${date.toLocaleString("ja")}に定期実行を行いました`, {reply: guild.ownerID});
     const allTimesId = getTimesChannelsid(guild);
