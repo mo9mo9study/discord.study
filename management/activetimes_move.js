@@ -4,6 +4,7 @@ const Discord = require('discord.js');
 const env = process.env;
 const TOKEN = env.CRON_BOT_TOKEN
 const client = new Discord.Client()
+const cron = require('node-cron')
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -37,23 +38,22 @@ categorySelectMove = (channels, channelid, categoryid) => {
 }
       
 
-getTimesChannelsid = (message) => {
+getTimesChannelsid = (guild) => {
     const ownerChannelid = '673006702924136448';
-    const channelsid = message.guild.channels.cache.keyArray();
+    const channelsid = guild.channels.cache.keyArray();
     const objChannelid = {"AlphaNum": [], "Etc": []};
     //const listChannelname = [];
     //const listChannelid = [];
     // timesのチャンネルをオブジェクトに入れる
     channelsid.map( id => {
-        const channel = message.guild.channels.cache.get(id);
-        if(channel.name.includes('times_')) {
-            if(channel.name.match(/^times_[a-zA-Z0-9].*$/)) {
+        const channel = guild.channels.cache.get(id);
+        if(channel.name.includes('times_')) { if(channel.name.match(/^times_[a-zA-Z0-9].*$/)) {
                 // 英数字のカテゴリー用配列
-                console.log(`${channel.name}は[英数字]のカテゴリーに追加されました`);
+                //console.log(`${channel.name}は[英数字]のカテゴリーに追加されました`);
                 objChannelid.AlphaNum.push(channel.id)
             } else {
                 // その他カテゴリー用配列
-                console.log(`${channel.name}は[その他]のカテゴリーに追加されました`);
+                //console.log(`${channel.name}は[その他]のカテゴリーに追加されました`);
                 objChannelid.Etc.push(channel.id)
             }
             //objChannelname_id[channel.name] = channel.id;
@@ -89,7 +89,7 @@ client.on('message', message => {
     }
     if(message.author.id != message.channel.guild.ownerID) return
     if(message.content === '¥reset') {
-        const allTimesId = getTimesChannelsid(message);
+        const allTimesId = getTimesChannelsid(message.guild);
         console.log(allTimesId)
         // カテゴリー「分報チャンネル（英数字）」に移動
         allTimesId.AlphaNum.map(channelid => {
@@ -111,4 +111,22 @@ client.on('message', message => {
 
     }
 });
+
+cron.schedule('0 0 2 * * *', () => {
+    const date = new Date();
+    console.log(`${date.toLocaleString("ja")}に定期実行を開始しました`);
+    const guild = client.guilds.cache.get('603582455756095488');
+    guild.channels.cache.get('673006702924136448').send(`${date.toLocaleString("ja")}に定期実行を行いました`, {reply: guild.ownerID});
+    const allTimesId = getTimesChannelsid(guild);
+    console.log(allTimesId)
+    // カテゴリー「分報チャンネル（英数字）」に移動
+    allTimesId.AlphaNum.map(channelid => {
+        categorySelectMove(guild.channels, channelid, '673004651871993866');
+    })
+    // カテゴリー「分報チャンネル（その他）」に移動
+    allTimesId.Etc.map(channelid => {
+        categorySelectMove(guild.channels, channelid, '719095356218146879');
+    })
+})
+
 client.login(TOKEN);
