@@ -11,7 +11,7 @@ const CHANNEL = env.AUTO_ROLE_CHANNEL_ID
 const emojiRoleMap = {
     '🇦': 'RSS_AWS技術ブログ',
     '🇧': 'RSS_AWS公式',
-    '🇨': 'RSS_Blackriver',
+    '🇨': 'RSS_GCP公式',
     '🇩': 'JOIN_gym',
 }
 //    '🇫': 'UC',
@@ -42,12 +42,12 @@ const embedManegeMessage = { embed: {
         },
         {
             name: '[:regional_indicator_b: :RSS_AWS公式]',
-            value: '-',
+            value: '- #rss-aws-公式ブログ \n - #rss-aws-公式最新情報',
             inline: true
         },
         {
-            name: '[:regional_indicator_c: : ]',
-            value: '-',
+            name: '[:regional_indicator_c: :RSS_GCP公式]',
+            value: '- #rss-gcp-公式ブログ',
             inline: true
         },
         {
