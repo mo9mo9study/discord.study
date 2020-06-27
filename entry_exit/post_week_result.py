@@ -11,6 +11,7 @@ from discord.ext import tasks
 #TOKEN = setting.tToken
 #CHANNEL = setting.tChannel
 #SERVER = setting.tServer
+
 TOKEN = setting.dToken
 CHANNEL = setting.wChannel
 SERVER = setting.dServer
@@ -41,13 +42,11 @@ def serialize_log(*args, end="\n"):
 
 def construct_user_record(user_name, studyWeekday, sum_study_time):
     userWeekResult = serialize_log("Name：", user_name)
-    
     #ex) 配列内の[04-20]月-日の文字列を[20]0埋めしない日に変換
     studyDay = []
     for item in studyWeekday:
         item_mod = re.sub(r'(^[0-9]{2})-0?([1-9]?[0-9]$)',r'\2',item)
         studyDay.append(item_mod)
-
     #ex) [04-20]
     #userWeekResult += serialize_log("　勉強した日付：", str(studyWeekday))
     userWeekResult += serialize_log("　勉強した日付：", str(studyDay))
@@ -58,14 +57,11 @@ def construct_user_record(user_name, studyWeekday, sum_study_time):
 def compose_user_records(strtoday, days, users_log):
     code_block = "```"
     separate = "====================\n"
-
     start_message = serialize_log("@everyone ")
     start_message += code_block + "\n"
     start_message += serialize_log("今日の日付：", strtoday)
     start_message += serialize_log("先週の日付：", days[0], "~", days[-1])
-
     week_result = [start_message]
-
     for user_log in users_log:
         if len(week_result[-1] + (separate + user_log)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
             week_result[-1] += code_block # end code_block
@@ -107,13 +103,12 @@ def aggregate_users_record(days):
     """
     user_list = [os.path.join(LOG_DIR, txt) for txt in os.listdir(LOG_DIR)]
     user_list = exclude_non_txt(user_list)
-
+    memberStudytime = []
     users_record = []
-
+    obj = {}
     for user_log in user_list:
         # ログファイル読み込み
         lines_strip = read_file(user_log)
-
         # １週間以内に勉強した日の学習ログのみ抜き出す
         study_logs = []
         for line in lines_strip:
@@ -123,21 +118,24 @@ def aggregate_users_record(days):
         if study_logs == []:
             print(f'{user_log}: 学習記録がありません')
             continue
-
         # 学習ログから勉強した日付を抜き出す
         study_days = []
         for log in study_logs:
             study_days += [day[-5:] for day in days if day in log]
         study_days = sorted(set(study_days), key=study_days.index)
-
         # 学習ログから合計勉強時間を算出する
         sum_study_time = 0
         for log in study_logs:
             sum_study_time += int(log.split(",")[-1])
-
         user_name = os.path.splitext(os.path.basename(user_log))[0]
-        user_record = construct_user_record(user_name, study_days, sum_study_time)
+        memberStudytime.append({"username": user_name, "studydays": study_days, "sumstudytime": sum_study_time})
+    memberStudytime.sort(key=lambda x: x["sumstudytime"], reverse=True)
+    for studytime in memberStudytime :
+        user_record = construct_user_record(studytime["username"], studytime["studydays"], studytime["sumstudytime"])
         users_record.append(user_record)
+    print("~< ソート済整形データ >~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(memberStudytime)
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     return users_record
 
 
@@ -146,22 +144,25 @@ def create_week_result():
     strtoday = datetime.strftime(today, '%Y-%m-%d')
     days = arr_days(today)
     user_records = aggregate_users_record(days)
+    print(user_records[0])
     week_result = compose_user_records(strtoday, days, user_records)
     return week_result
 
+# (確認用)実行された時に出力されるデータの想定
 str_weekResult = create_week_result()
 print(str_weekResult)
 print(len(str_weekResult))
 for strR in str_weekResult:
     print(strR)
-    print(len(strR))
+    print("文字数: ",len(strR))
+
 
 client = discord.Client()
 
 @client.event
 async def on_message(message):
-    print('start')
     if message.content.startswith("¥Week_Result"):
+        print('Command ¥Week_Result : ', message.author.name)
         if message.author.id != 603567991132782592:
             print('管理者(SuPleiades)以外のメンバーが実行しました')
             return
@@ -181,7 +182,6 @@ async def post_week_result():
             week_results = create_week_result()
             for week_result in week_results:
                 await channel.send(week_result)
-
 
 post_week_result.start()
 
