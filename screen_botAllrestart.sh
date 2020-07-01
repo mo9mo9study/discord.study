@@ -40,3 +40,21 @@
  screen -dmS post_month_result
  sleep 3s
  screen -S post_month_result -X stuff 'cd ~/discord/entry_exit/;python3 post_month_result.py'`echo -ne '\015'`
+
+ # activetimes_move
+ screen -S activetimes_move -X quit
+ screen -dmS activetimes_move
+ sleep 3s
+ screen -S activetimes_move -X stuff 'cd ~/discord/management;python3 activetimes_move.js'`echo -ne '\015'`
+
+ # autoCreateTimes
+ screen -S autoCreateTimes -X quit
+ screen -dmS autoCreateTimes
+ sleep 3s
+ screen -S autoCreateTimes -X stuff 'cd ~/discord/management;python3 autoCreateTimes.js'`echo -ne '\015'`
+ 
+ # sqlite_mem_time
+ screen -S sqlite_mem_time -X quit
+ screen -dmS sqlite_mem_time
+ sleep 3s
+ screen -S sqlite_mem_time -X stuff 'cd ~/discord/management;python3 sqlite_mem_time.js'`echo -ne '\015'`
