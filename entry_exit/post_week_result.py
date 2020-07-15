@@ -7,6 +7,9 @@ import re
 
 import discord
 from discord.ext import tasks
+from discord.ext import commands
+
+bot = commands.Bot(command_prefix='¥')
 ## testroleiギルドの[テストBOT007]にて起動
 #TOKEN = setting.tToken
 #CHANNEL = setting.tChannel
@@ -158,6 +161,22 @@ for strR in str_weekResult:
 
 
 client = discord.Client()
+from pprint import pprint
+@bot.command()
+#async def result_d(ctx, member: discord.Member):
+async def result_d(ctx):
+    pprint(vars(ctx))
+    print('------')
+    print(type(ctx))
+    await ctx.send(f"このメンションは{ctx}さんのメンションです！")
+    #if ctx.invoked_subcommand is None:
+    #            await ctx.send('No, {0.subcommand_passed} is not cool'.format(ctx))
+
+@bot.command()
+async def joined(ctx,member : discord.Member):
+    await ctx.send('{0.name} joined in {0.joined_at}'.format(member))
+    print(ctx)
+
 
 @client.event
 async def on_message(message):
@@ -184,5 +203,5 @@ async def post_week_result():
                 await channel.send(week_result)
 
 post_week_result.start()
-
-client.run(TOKEN)
+#client.run(TOKEN)
+bot.run(TOKEN)
