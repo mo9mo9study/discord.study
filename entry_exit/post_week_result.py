@@ -3,6 +3,7 @@ import magic
 import os
 import setting
 from datetime import date, datetime, timedelta
+from pprint import pprint
 import re
 
 import discord
@@ -73,6 +74,20 @@ def compose_user_records(strtoday, days, users_log):
     week_result[-1] += code_block # end code_block
     return week_result
 
+def compose_user_record(name, day, studytime):
+    code_block = "```"
+    separate = "====================\n"
+    start_message = code_block
+    start_message += separate
+    start_message += "[ 今日( " + day + " )の勉強時間 ]\n"
+    start_message += "  --->" + name  + " さんの勉強時間は[ " + minutes2time(studytime) + " ]です\n"
+    start_message += separate
+    start_message += "#もくもくオンライン勉強会\n"
+    start_message += "#もくもく勉強机\n"
+    start_message += "#今日の積み上げ\n"
+    start_message += code_block
+    day_result = start_message
+    return day_result
 
 def read_file(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
@@ -152,68 +167,81 @@ def create_week_result():
     return week_result
 
 # (確認用)実行された時に出力されるデータの想定
-str_weekResult = create_week_result()
-print(str_weekResult)
-print(len(str_weekResult))
-for strR in str_weekResult:
-    print(strR)
-    print("文字数: ",len(strR))
+##str_weekResult = create_week_result()
+##print(str_weekResult)
+##print(len(str_weekResult))
+##for strR in str_weekResult:
+##    print(strR)
+##    print("文字数: ",len(strR))
 
 
-client = discord.Client()
-from pprint import pprint
-@bot.command()
-#async def result_d(ctx, member: discord.Member):
-async def result_d(ctx):
-    print("-----------")
-    pprint(vars(ctx))
-    print("===========")
-    pprint(ctx.args)
-    print("-----------")
-    print('type: ',type(ctx))
-    name = ctx.author.name
-    today = datetime.today()
-    strtoday = datetime.strftime(today, '%Y-%m-%d')
+#週間と被るが、一旦日次分の処理を追加
+#今後、統一していってほしい
+#関数名がxxxになっている集計
+def xxx(name, day):
     user_log = LOG_DIR + '/' + name
-    print(user_log)
     # ログファイル読み込み
     lines_strip = read_file(user_log)
     # １週間以内に勉強した日の学習ログのみ抜き出す
     study_logs = []
     for line in lines_strip:
-        if strtoday in line:
+        if day in line:
             if "Study time" in line:
                 print(line)
                 study_logs.append(line)
-
     # 学習ログから合計勉強時間を算出する
     sum_study_time = 0
-    print(study_logs)
     for log in study_logs:
         sum_study_time += int(log.split(",")[-1])
-    print(sum_study_time)
-    await ctx.send(f"====================\n今日の勉強時間\n  ---> {name}さんの勉強時間は[ {sum_study_time}/分 ]です\n====================\n#もくもくオンライン勉強会\n#もくもく勉強机\n#今日の積み上げ")
-    #if ctx.invoked_subcommand is None:
-    #            await ctx.send('No, {0.subcommand_passed} is not cool'.format(ctx))
+    return sum_study_time
+
+
+client = discord.Client()
+@bot.group(invoke_without_command=True)
+async def result_d(ctx):
+    #当日分の日次集計
+    print("-----------")
+    pprint(vars(ctx))
+    print("===========")
+    if ctx.invoked_subcommand is None:
+        name = ctx.author.name
+        today = datetime.today()
+        strtoday = datetime.strftime(today, '%Y-%m-%d')
+        sum_study_time = xxx(name, strtoday)
+        await ctx.send(compose_user_record(name, strtoday, sum_study_time))
+
+@result_d.command()
+async def ago(ctx):
+    #前日分の日次集計
+    print("-----------")
+    pprint(vars(ctx))
+    print("===========")
+    name = ctx.author.name
+    today = datetime.today()
+    day = today - timedelta(1)
+    print("day :", day)
+    strday = datetime.strftime(day, '%Y-%m-%d')
+    print("strday :",strday)
+    sum_study_time = xxx(name, strday)
+    await ctx.send(compose_user_record(name, strday, sum_study_time))
 
 @bot.command()
 async def joined(ctx,member : discord.Member):
     await ctx.send('{0.name} joined in {0.joined_at}'.format(member))
     print(ctx)
 
-@client.event
-async def on_message(message):
-    if message.content.startswith("¥Week_Result"):
-        print('Command ¥Week_Result : ', message.author.name)
-        if message.author.id != 603567991132782592:
-            print('管理者(SuPleiades)以外のメンバーが実行しました')
-            return
-        print(f'手動週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
-        channel = client.get_channel(CHANNEL)
-        week_results = create_week_result()
-        for week_result in week_results:
-            await channel.send(week_result)
-
+@bot.command()
+async def Week_Result(ctx):
+    message = ctx.message
+    print('Used Command :' + ctx.invoked_with + ' (User) ' + message.author.name)
+    if message.author.id != 603567991132782592:
+        print('管理者(SuPleiades)以外のメンバーが実行しました')
+        return
+    print(f'手動週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+    channel = bot.get_channel(CHANNEL)
+    week_results = create_week_result()
+    for week_result in week_results:
+        await channel.send(week_result)
 
 @tasks.loop(seconds=60)
 async def post_week_result():
