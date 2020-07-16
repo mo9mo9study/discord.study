@@ -165,10 +165,34 @@ from pprint import pprint
 @bot.command()
 #async def result_d(ctx, member: discord.Member):
 async def result_d(ctx):
+    print("-----------")
     pprint(vars(ctx))
-    print('------')
-    print(type(ctx))
-    await ctx.send(f"このメンションは{ctx}さんのメンションです！")
+    print("===========")
+    pprint(ctx.args)
+    print("-----------")
+    print('type: ',type(ctx))
+    name = ctx.author.name
+    today = datetime.today()
+    strtoday = datetime.strftime(today, '%Y-%m-%d')
+    user_log = LOG_DIR + '/' + name
+    print(user_log)
+    # ログファイル読み込み
+    lines_strip = read_file(user_log)
+    # １週間以内に勉強した日の学習ログのみ抜き出す
+    study_logs = []
+    for line in lines_strip:
+        if strtoday in line:
+            if "Study time" in line:
+                print(line)
+                study_logs.append(line)
+
+    # 学習ログから合計勉強時間を算出する
+    sum_study_time = 0
+    print(study_logs)
+    for log in study_logs:
+        sum_study_time += int(log.split(",")[-1])
+    print(sum_study_time)
+    await ctx.send(f"====================\n今日の勉強時間\n  ---> {name}さんの勉強時間は[ {sum_study_time}/分 ]です\n====================\n#もくもくオンライン勉強会\n#もくもく勉強机\n#今日の積み上げ")
     #if ctx.invoked_subcommand is None:
     #            await ctx.send('No, {0.subcommand_passed} is not cool'.format(ctx))
 
@@ -176,7 +200,6 @@ async def result_d(ctx):
 async def joined(ctx,member : discord.Member):
     await ctx.send('{0.name} joined in {0.joined_at}'.format(member))
     print(ctx)
-
 
 @client.event
 async def on_message(message):
