@@ -203,12 +203,14 @@ async def result_d(ctx):
     print("-----------")
     pprint(vars(ctx))
     print("===========")
-    if ctx.invoked_subcommand is None:
+    if ctx.subcommand_passed is None:
         name = ctx.author.name
         today = datetime.today()
         strtoday = datetime.strftime(today, '%Y-%m-%d')
         sum_study_time = xxx(name, strtoday)
         await ctx.send(compose_user_record(name, strtoday, sum_study_time))
+    else:
+        await ctx.send("[ " + ctx.subcommand_passed + " ]は無効な引数です")
 
 @result_d.command()
 async def ago(ctx):
