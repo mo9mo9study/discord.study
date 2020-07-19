@@ -1,5 +1,8 @@
 import discord
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 import setting
 from discord.ext import tasks, commands
 from datetime import datetime, timedelta
