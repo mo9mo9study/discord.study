@@ -7,8 +7,7 @@ from pprint import pprint
 import re
 
 import discord
-from discord.ext import tasks
-from discord.ext import commands
+from discord.ext import tasks, commands
 
 bot = commands.Bot(command_prefix='¥')
 ## testroleiギルドの[テストBOT007]にて起動
@@ -196,7 +195,6 @@ def xxx(name, day):
     return sum_study_time
 
 
-client = discord.Client()
 @bot.group(invoke_without_command=True)
 async def result_d(ctx):
     #当日分の日次集計
@@ -245,16 +243,18 @@ async def Week_Result(ctx):
     for week_result in week_results:
         await channel.send(week_result)
 
+
 @tasks.loop(seconds=60)
 async def post_week_result():
+    await bot.wait_until_ready() #Botが準備状態になるまで待機
     if datetime.now().strftime('%H:%M') == "07:30":
         if date.today().weekday() == 0:
             print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
-            channel = client.get_channel(CHANNEL)
+            #channel = client.get_channel(CHANNEL)
             week_results = create_week_result()
+            channel = bot.get_channel(CHANNEL)
             for week_result in week_results:
                 await channel.send(week_result)
 
 post_week_result.start()
-#client.run(TOKEN)
 bot.run(TOKEN)
