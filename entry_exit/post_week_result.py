@@ -1,6 +1,7 @@
 # import mimetypes
 import magic
 import os
+import sys
 import setting
 from datetime import date, datetime, timedelta
 from pprint import pprint
@@ -9,6 +10,7 @@ import re
 import discord
 from discord.ext import tasks, commands
 
+client = discord.Client()
 bot = commands.Bot(command_prefix='¥')
 ## testroleiギルドの[テストBOT007]にて起動
 #TOKEN = setting.tToken
@@ -19,6 +21,7 @@ TOKEN = setting.dToken
 CHANNEL = setting.wChannel
 SERVER = setting.dServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
+USER_SETTINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userSettings")
 MAX_SEND_MESSAGE_LENGTH = 2000
 
 
@@ -74,18 +77,17 @@ def compose_user_records(strtoday, days, users_log):
     return week_result
 
 def compose_user_record(name, day, studytime):
-    code_block = "```"
-    separate = "====================\n"
-    start_message = code_block
-    start_message += separate
-    start_message += "[ 今日( " + day + " )の勉強時間 ]\n"
-    start_message += "  --->" + name  + " さんの勉強時間は[ " + minutes2time(studytime) + " ]です\n"
-    start_message += separate
-    start_message += "#もくもくオンライン勉強会\n"
-    start_message += "#もくもく勉強机\n"
-    start_message += "#今日の積み上げ\n"
-    start_message += code_block
-    day_result = start_message
+    day_result = '''
+```
+====================
+[ 今日( {day} )の勉強時間 ]
+  --->{name} さんの勉強時間は[ {totalStudyTime} ]です
+====================
+#もくもくオンライン勉強会
+#もくもく勉強机
+#今日の積み上げ
+```
+    '''.format(name=name, day=day, totalStudyTime=str(minutes2time(studytime))).strip()
     return day_result
 
 def read_file(file_path):
@@ -194,7 +196,9 @@ def xxx(name, day):
         sum_study_time += int(log.split(",")[-1])
     return sum_study_time
 
-
+#==========
+# result_d
+#==========
 @bot.group(invoke_without_command=True)
 async def result_d(ctx):
     #当日分の日次集計
@@ -242,6 +246,71 @@ async def Week_Result(ctx):
     week_results = create_week_result()
     for week_result in week_results:
         await channel.send(week_result)
+
+#=======================
+# select studing target
+#=======================
+@bot.group(invoke_without_command=True)
+async def study(ctx):
+    allowedReactionList = [':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:', ':keycap_ten:']
+    #当日分の日次集計
+    print(os.path.basename(__file__), '->', sys._getframe().f_code.co_name)
+    print("-----------")
+    pprint(vars(ctx))
+    print("===========")
+    targetList = list_study_target(ctx.author.name)
+    pprint(len([]))
+    pprint(len(targetList))
+    if (len(targetList) > 0):
+        cnt = 0
+        options = ''
+        for target in targetList:
+            options += '> ' + allowedReactionList[cnt] + ' : ' + target
+            cnt+=1
+        options = options.rstrip("\n")
+        message = '''
+> ====================
+> [ 勉強する対象を選んでね。このメッセージに勉強したいアイテムのリアクションをつければok。*複数つけても最初のものが選択されます。 ]
+{options}
+> ====================
+        '''.format(options=options).strip()
+
+    else:
+        message = '''
+> ====================
+> 勉強中のものはなかったよ。追加する？
+> 追加するなら :ok: リアクションをつけてね
+> ====================
+        '''
+    await ctx.send(message)    
+    # if ctx.subcommand_passed is None:
+    #     name = ctx.author.name
+    #     today = datetime.today()
+    #     strtoday = datetime.strftime(today, '%Y-%m-%d')
+    #     sum_study_time = xxx(name, strtoday)
+    #     await ctx.send(compose_user_record(name, strtoday, sum_study_time))
+    # else:
+    #     await ctx.send("[ " + ctx.subcommand_passed + " ]は無効な引数です")
+
+
+def list_study_target(user_name):
+    # 初回実行ならユーザ用勉強対象設定ファイルを作成するよ
+    listFile = USER_SETTINGS_DIR + '/' + user_name
+    isFirstTime = os.path.isfile(listFile)
+    if not isFirstTime:
+        with open(listFile,"w"):pass
+    targetList = open(listFile,"r").readlines()
+    # pprint(listFile)
+    # pprint(targetList)
+    # pprint(len(targetList))
+    return targetList
+
+
+
+@client.event
+async def on_message(message):
+    await channel.send('Say hello!')
+
 
 
 @tasks.loop(seconds=60)
