@@ -5,7 +5,8 @@ WORKDIR /usr/src/discord.study
 
 # Install dependencies
 RUN apt update \
-  && apt-get -y install procps \
+  && apt-get -y install procps python3-magic \
+  && apt-get -y install vim \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* 
 

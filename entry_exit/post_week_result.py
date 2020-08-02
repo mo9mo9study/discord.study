@@ -1,14 +1,17 @@
 # import mimetypes
 import magic
 import os
+import sys
 import setting
 from datetime import date, datetime, timedelta
 from pprint import pprint
 import re
+import emoji
 
 import discord
 from discord.ext import tasks, commands
 
+client = discord.Client()
 bot = commands.Bot(command_prefix='¥')
 ## testroleiギルドの[テストBOT007]にて起動
 #TOKEN = setting.tToken
@@ -19,7 +22,9 @@ TOKEN = setting.dToken
 CHANNEL = setting.wChannel
 SERVER = setting.dServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
+USER_SETTINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userSettings")
 MAX_SEND_MESSAGE_LENGTH = 2000
+ALLOWED_REACTION_LIST = [':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:', ':keycap_ten:']
 
 
 def minutes2time(m):
@@ -74,18 +79,17 @@ def compose_user_records(strtoday, days, users_log):
     return week_result
 
 def compose_user_record(name, day, studytime):
-    code_block = "```"
-    separate = "====================\n"
-    start_message = code_block
-    start_message += separate
-    start_message += "[ 今日( " + day + " )の勉強時間 ]\n"
-    start_message += "  --->" + name  + " さんの勉強時間は[ " + minutes2time(studytime) + " ]です\n"
-    start_message += separate
-    start_message += "#もくもくオンライン勉強会\n"
-    start_message += "#もくもく勉強机\n"
-    start_message += "#今日の積み上げ\n"
-    start_message += code_block
-    day_result = start_message
+    day_result = '''
+```
+====================
+[ 今日( {day} )の勉強時間 ]
+  --->{name} さんの勉強時間は[ {totalStudyTime} ]です
+====================
+#もくもくオンライン勉強会
+#もくもく勉強机
+#今日の積み上げ
+```
+    '''.format(name=name, day=day, totalStudyTime=str(minutes2time(studytime))).strip()
     return day_result
 
 def read_file(file_path):
@@ -194,7 +198,9 @@ def xxx(name, day):
         sum_study_time += int(log.split(",")[-1])
     return sum_study_time
 
-
+#==========
+# result_d
+#==========
 @bot.group(invoke_without_command=True)
 async def result_d(ctx):
     #当日分の日次集計
@@ -242,6 +248,116 @@ async def Week_Result(ctx):
     week_results = create_week_result()
     for week_result in week_results:
         await channel.send(week_result)
+
+#=======================
+# select studing target
+#=======================
+def print_trace_message(ctx, caller):
+    print(os.path.basename(__file__), '->', caller)
+    print("-----------")
+    pprint(vars(ctx))
+    print("===========")
+
+
+def build_study_list_message(targetList):
+    if (len(targetList) > 0):
+        cnt = 0
+        options = ''
+        for target in targetList:
+            options += '> ' + ALLOWED_REACTION_LIST[cnt] + ' : ' + target
+            cnt+=1
+        options = options.rstrip("\n")
+        message = '''
+> ====================
+> [ 勉強する対象を選んでね。このメッセージに勉強したいアイテムのリアクションをつければok。*複数つけても最初のものが選択されます。 ]
+{options}   
+> ====================
+        '''.format(options=options).strip()
+
+    else:
+        message = '''
+> ====================
+> 勉強中のものはなかったよ。追加する？
+> 追加するなら ¥s add で追加してね。
+> ====================
+        '''
+    return message
+
+# 勉強対象一覧をlistで返す
+def list_study_target(user_name):
+    # 初回実行ならユーザ用勉強対象設定ファイルを作成するよ
+    listFile = USER_SETTINGS_DIR + '/' + user_name
+    isFirstTime = os.path.isfile(listFile)
+    if not isFirstTime:
+        with open(listFile,"w"):pass
+    targetList = open(listFile,"r").readlines()
+    return targetList
+
+# アクティブな勉強対象をセットする
+def selectStudyTarget(user_name, selected):
+    studyTargetFile = USER_SETTINGS_DIR + '/' + user_name + '-selected'
+    # 初回実行ならユーザ用勉強対象設定ファイルを作成するよ
+    isFirstTime = os.path.isfile(studyTargetFile)
+    if not isFirstTime:
+        with open(studyTargetFile,"w"):pass
+    with open(studyTargetFile, "w", encoding="utf-8") as f:
+        f.write(selected)
+        f.close
+
+@bot.group(invoke_without_command=True)
+async def s(ctx):
+    #当日分の日次集計
+    print_trace_message(ctx, sys._getframe().f_code.co_name)
+    targetList = list_study_target(ctx.author.name)
+    pprint(len([]))
+    pprint(len(targetList))
+    message = build_study_list_message(targetList)
+    await ctx.send(message)    
+
+@bot.group(invoke_without_command=True)
+async def study(ctx):
+    #当日分の日次集計
+    print_trace_message(ctx, sys._getframe().f_code.co_name)
+    targetList = list_study_target(ctx.author.name)
+    pprint(len([]))
+    pprint(len(targetList))
+    message = build_study_list_message(targetList)
+    await ctx.send(message)    
+
+
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    dprint(reaction)
+    dprint(user)
+    # 素直にこちらでやったほうが良さそう
+    dprint(user.name)
+    dprint(reaction.emoji)
+    userReaction = emoji.demojize(reaction.emoji, use_aliases=True)
+    # リアクションが勉強アイテムに対応するものかを判定する
+    targetList = list_study_target(user.name)
+    studyOptions = ALLOWED_REACTION_LIST[0:len(targetList)]
+    if (userReaction in studyOptions):
+        dprint('selected: ' + reaction.emoji)
+        selectedStudyTarget = list_study_target(user.name)[studyOptions.index(userReaction)].rstrip("\n")
+        dprint(selectedStudyTarget)
+        selectStudyTarget(user.name, selectedStudyTarget)
+    # 後で良いToDoギルドで利用可能なリアクション用emojiかを判定する
+
+
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    # channel_id から Channel オブジェクトを取得
+    channel = client.get_channel(payload.channel_id)
+    # pprint(payload)
+    # times_*のみ対応する?
+    # userと*が一致する場合のみ対応する?
+
+
+def dprint(msg):
+    if not __debug__:
+        pprint(msg)
 
 
 @tasks.loop(seconds=60)
