@@ -1,4 +1,4 @@
-## farst step
+## first step
 ```
 pip install -r requirements.txt
 ```
