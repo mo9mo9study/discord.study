@@ -7,3 +7,6 @@ test*
 
 entry_exit/timelog/
 node_modules
+*.log
+
+.idea
