@@ -21,6 +21,14 @@ const sendMessage = (member, text) => {
   member.guild.channels.cache.get(CHANNEL).send(text);
 };
 
+client.on('inviteCreate', (invite) => {
+  invite.guilds.cache.foreach(guild => {
+    guild.fetchinvites().then(invites => {
+      allinvites[guild.id] = invites
+    });
+  });
+});
+
 client.on("guildMemberAdd", (member) => {
   console.log("参加時");
   member.guild.fetchInvites().then(invites => {
