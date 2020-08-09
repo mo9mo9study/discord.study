@@ -22,11 +22,11 @@ const sendMessage = (member, text) => {
 };
 
 client.on('inviteCreate', (invite) => {
-  invite.guilds.cache.foreach(guild => {
-    guild.fetchinvites().then(invites => {
-      allinvites[guild.id] = invites
-    });
-  });
+  client.guilds.cache.forEach(guild => {
+    guild.fetchInvites().then(invites => {
+      allInvites[guild.id] = invites
+    })
+  })
 });
 
 client.on("guildMemberAdd", (member) => {
