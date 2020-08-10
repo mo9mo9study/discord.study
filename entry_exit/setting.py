@@ -39,3 +39,7 @@ tServer = int(os.environ.get("TEST_SEVER_ID"))
 ## supleiadesの実験場
 tChannel = int(os.environ.get("TEST_CHANNEL_ID"))
 
+"""==============================
+Google credential
+=============================="""
+dCalendarId=os.environ.get("CALENDAR_ID")
