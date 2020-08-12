@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 from pprint import pprint
 import re
 import emoji
+import urllib.parse
 
 import discord
 from discord.ext import tasks, commands
@@ -80,7 +81,6 @@ def compose_user_records(strtoday, days, users_log):
 
 def compose_user_record(name, day, studytime):
     day_result = '''
-```
 ====================
 [ 今日( {day} )の勉強時間 ]
   --->{name} さんの勉強時間は[ {totalStudyTime} ]です
@@ -88,7 +88,6 @@ def compose_user_record(name, day, studytime):
 #もくもくオンライン勉強会
 #もくもく勉強机
 #今日の積み上げ
-```
     '''.format(name=name, day=day, totalStudyTime=str(minutes2time(studytime))).strip()
     return day_result
 
@@ -198,9 +197,17 @@ def xxx(name, day):
         sum_study_time += int(log.split(",")[-1])
     return sum_study_time
 
+
+
 #==========
 # result_d
 #==========
+def createTwitterUrlEncode(websiteurl, content):
+    baseurl = "https://twitter.com/share"
+    encodeContent = urllib.parse.quote(content)
+    twitterUrl = baseurl + "?url=" + websiteurl + "&text=" + encodeContent
+    return twitterUrl
+
 @bot.group(invoke_without_command=True)
 async def result_d(ctx):
     #当日分の日次集計
@@ -212,7 +219,9 @@ async def result_d(ctx):
         today = datetime.today()
         strtoday = datetime.strftime(today, '%Y-%m-%d')
         sum_study_time = xxx(name, strtoday)
-        await ctx.send(compose_user_record(name, strtoday, sum_study_time))
+        sendMessage = compose_user_record(name, strtoday, sum_study_time)
+        encodeMessage = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
+        await ctx.send("```" + sendMessage + "```⬇︎下のURLから簡単に積み上げツイートが出来るよ\n" +encodeMessage)
     else:
         await ctx.send("[ " + ctx.subcommand_passed + " ]は無効な引数です")
 
@@ -229,7 +238,9 @@ async def ago(ctx):
     strday = datetime.strftime(day, '%Y-%m-%d')
     print("strday :",strday)
     sum_study_time = xxx(name, strday)
-    await ctx.send(compose_user_record(name, strday, sum_study_time))
+    sendMessage = compose_user_record(name, strday, sum_study_time)
+    encodeMessage = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
+    await ctx.send("```" + sendMessage + "```⬇︎下のURLから簡単に積み上げツイートが出来るよ\n" +encodeMessage)
 
 @bot.command()
 async def joined(ctx,member : discord.Member):
@@ -303,6 +314,11 @@ def selectStudyTarget(user_name, selected):
     with open(studyTargetFile, "w", encoding="utf-8") as f:
         f.write(selected)
         f.close
+
+
+
+
+
 
 @bot.group(invoke_without_command=True)
 async def s(ctx):
