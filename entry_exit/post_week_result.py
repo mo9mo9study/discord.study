@@ -8,6 +8,8 @@ from pprint import pprint
 import re
 import emoji
 import urllib.parse
+import json
+import requests
 
 import discord
 from discord.ext import tasks, commands
@@ -26,6 +28,7 @@ LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
 USER_SETTINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userSettings")
 MAX_SEND_MESSAGE_LENGTH = 2000
 ALLOWED_REACTION_LIST = [':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:', ':keycap_ten:']
+
 
 
 def minutes2time(m):
@@ -202,11 +205,33 @@ def xxx(name, day):
 #==========
 # result_d
 #==========
-def createTwitterUrlEncode(websiteurl, content):
+googleShortLinksPrefix = setting.dFirebaseshortLinksPrefix
+googleApiKey = setting.dFirebaseAipkey
+
+def createTwitterUrlEncode(websiteUrl, sendContent):
     baseurl = "https://twitter.com/share"
-    encodeContent = urllib.parse.quote(content)
-    twitterUrl = baseurl + "?url=" + websiteurl + "&text=" + encodeContent
+    encodeContent = urllib.parse.quote(sendContent)
+    twitterUrl = "https://twitter.com/share?url={}&text={}".format(websiteUrl, encodeContent)
     return twitterUrl
+
+
+def shorten_url(url, prefix, key):
+    '''Firebase Dynamic Link を使って URL を短縮する'''
+    post_url = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=' + key
+    payload = {
+        "dynamicLinkInfo": {
+            "domainUriPrefix": prefix,
+            "link": url
+        },
+        "suffix": {"option": "SHORT"}
+    }
+    headers = {'Content-type': 'application/json'}
+    r = requests.post(post_url, data=json.dumps(payload), headers=headers)
+    if not r.ok:
+        print(str(r), file=sys.stderr)
+        return None
+    return json.loads(r.content)["shortLink"]
+
 
 @bot.group(invoke_without_command=True)
 async def result_d(ctx):
@@ -220,7 +245,9 @@ async def result_d(ctx):
         strtoday = datetime.strftime(today, '%Y-%m-%d')
         sum_study_time = xxx(name, strtoday)
         sendMessage = compose_user_record(name, strtoday, sum_study_time)
-        encodeMessage = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
+        longUrl = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
+        encodeMessage = shorten_url(longUrl, googleShortLinksPrefix , googleApiKey)
+        print(encodeMessage) 
         await ctx.send("```" + sendMessage + "```⬇︎下のURLから簡単に積み上げツイートが出来るよ\n" +encodeMessage)
     else:
         await ctx.send("[ " + ctx.subcommand_passed + " ]は無効な引数です")
@@ -239,8 +266,9 @@ async def ago(ctx):
     print("strday :",strday)
     sum_study_time = xxx(name, strday)
     sendMessage = compose_user_record(name, strday, sum_study_time)
-    encodeMessage = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
-    await ctx.send("```" + sendMessage + "```⬇︎下のURLから簡単に積み上げツイートが出来るよ\n" +encodeMessage)
+    longUrl = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
+    encodeMessage = shorten_url(longUrl, googleShortLinksPrefix , googleApiKey)
+    await ctx.send("```" + sendMessage + "```⬇︎下のURLから簡単に積み上げツイートが出来るよ\n" + encodeMessage)
 
 @bot.command()
 async def joined(ctx,member : discord.Member):

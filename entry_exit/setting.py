@@ -1,4 +1,5 @@
 # coding: UTF-8
+
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -43,3 +44,5 @@ tChannel = int(os.environ.get("TEST_CHANNEL_ID"))
 Google credential
 =============================="""
 dCalendarId=os.environ.get("CALENDAR_ID")
+dFirebaseAipkey=os.environ.get("FIREBASE_API_KEY")
+dFirebaseshortLinksPrefix=os.environ.get("FIREBASE_DYNAMICLINKS_PREFIX")
