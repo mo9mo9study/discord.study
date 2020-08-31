@@ -288,6 +288,18 @@ async def Week_Result(ctx):
     for week_result in week_results:
         await channel.send(week_result)
 
+@bot.command()
+async def Week_Result(ctx):
+    message = ctx.message
+        if message.author.id != 603567991132782592:
+            print('管理者(SuPleiades)以外のメンバーが実行しました')
+            return
+        print(f'手動月間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+        channel = bot.get_channel(CHANNEL)
+        month_results = create_month_result()
+        for month_result in month_results:
+            await channel.send(month_result)
+
 #=======================
 # select studing target
 #=======================
@@ -356,7 +368,7 @@ async def s(ctx):
     pprint(len([]))
     pprint(len(targetList))
     message = build_study_list_message(targetList)
-    await ctx.send(message)    
+    await ctx.send(message)
 
 @bot.group(invoke_without_command=True)
 async def study(ctx):
@@ -366,7 +378,7 @@ async def study(ctx):
     pprint(len([]))
     pprint(len(targetList))
     message = build_study_list_message(targetList)
-    await ctx.send(message)    
+    await ctx.send(message)
 
 
 
