@@ -404,9 +404,11 @@ def dprint(msg):
         pprint(msg)
 
 
+#自動集計用定期処理
 @tasks.loop(seconds=60)
-async def post_week_result():
+async def post_result():
     await bot.wait_until_ready() #Botが準備状態になるまで待機
+    #post_week_result
     if datetime.now().strftime('%H:%M') == "07:30":
         if date.today().weekday() == 0:
             print(f'週間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
@@ -415,6 +417,15 @@ async def post_week_result():
             channel = bot.get_channel(CHANNEL)
             for week_result in week_results:
                 await channel.send(week_result)
+    #pose_month_result
+    if datetime.now().strftime('%H:%M') == "07:35":
+        if datetime.now().strftime('%d') == '01':
+            print('実行日: ', datetime.now().strftime('%d'))
+            print(f'月間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+            channel = bot.get_channel(CHANNEL)
+            month_results = create_month_result()
+            for month_result in month_results:
+                await channel.send(month_result)
 
-post_week_result.start()
+post_result.start()
 bot.run(TOKEN)
