@@ -65,8 +65,23 @@ def construct_user_record(user_name, studyWeekday, sum_study_time):
     userWeekResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)))
     return userWeekResult
 
+def compose_users_monthrecord(strtoday, days, users_log):
+    code_block = "```"
+    separate = "====================\n"
+    start_message = serialize_log("@everyone ")
+    start_message += code_block + "\n"
+    start_message += serialize_log("取得日：", strtoday)
+    start_message += serialize_log("先月の日付：", getLastMonthValiable('lastMonth_YMFirstday'),"~", days[-1])
+    month_result = [start_message]
+    for user_log in users_log:
+        if len(month_result[-1] + (separate + user_log)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
+            month_result[-1] += code_block # end code_block
+            month_result.append(code_block) # start code_block
+        month_result[-1] += separate + user_log
+    month_result[-1] += code_block # end code_block
+    return month_result
 
-def compose_user_records(strtoday, days, users_log):
+def compose_users_weekrecord(strtoday, days, users_log):
     code_block = "```"
     separate = "====================\n"
     start_message = serialize_log("@everyone ")
@@ -161,15 +176,23 @@ def aggregate_users_record(days):
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     return users_record
 
-
+# ここ週間も月間も一緒だから合わせていきたい
 def create_week_result():
     today = datetime.today()
     strtoday = datetime.strftime(today, '%Y-%m-%d')
     days = arr_days(today)
     user_records = aggregate_users_record(days)
     print(user_records[0])
-    week_result = compose_user_records(strtoday, days, user_records)
+    week_result = compose_users_weekrecord(strtoday, days, user_records)
     return week_result
+
+def create_month_result():
+    today = datetime.today()
+    strtoday = datetime.strftime(today, '%Y-%m-%d')
+    days = arr_days(today)
+    user_records = aggregate_users_record(days)
+    month_result = compose_user_records(strtoday, days, user_records)
+    return month_result
 
 # (確認用)実行された時に出力されるデータの想定
 ##str_weekResult = create_week_result()
@@ -247,7 +270,7 @@ async def result_d(ctx):
         sendMessage = compose_user_record(name, strtoday, sum_study_time)
         longUrl = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
         encodeMessage = shorten_url(longUrl, googleShortLinksPrefix , googleApiKey)
-        print(encodeMessage) 
+        print(encodeMessage)
         await ctx.send("```" + sendMessage + "```⬇︎下のURLから簡単に積み上げツイートが出来るよ\n" +encodeMessage)
     else:
         await ctx.send("[ " + ctx.subcommand_passed + " ]は無効な引数です")
