@@ -4,6 +4,7 @@ import os
 import sys
 import setting
 from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from pprint import pprint
 import re
 import emoji
@@ -29,6 +30,37 @@ USER_SETTINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "us
 MAX_SEND_MESSAGE_LENGTH = 2000
 ALLOWED_REACTION_LIST = [':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:', ':keycap_ten:']
 
+def getMonth(y, m):
+    if m in {1, 3, 5, 7, 8, 10, 12}:
+        return 31
+    elif m in {4, 6, 9, 11}:
+        return 30
+    elif m in 2:
+        if y % 4 in 0 and y % 100 != 0 or y % 400:
+            return 29
+        else:
+            return 28
+    else:
+        return 0
+
+
+def getLastMonthValiable(request):
+    thisMonth_YMFirstday = datetime(int(datetime.strftime(datetime.today(),'%Y')), int(datetime.strftime(datetime.today(),'%m')), 1) #ex)2020-03
+    lastMonth_Y = int(datetime.strftime(datetime.today() - relativedelta(months=1), '%Y')) #ex)2020
+    lastMonth_M = int(datetime.strftime(datetime.today() - relativedelta(months=1), '%m')) #ex)3
+    lastMonth_YMFirstday = date(lastMonth_Y, lastMonth_M , 1) #ex)2020-03-01
+    lastMonth_Days = getMonth(lastMonth_Y, lastMonth_M)
+#    print('-----> debug')
+#    print('lastMonth_Y: ',lastMonth_Y)
+#    print('lastMonth_M: ',lastMonth_M)
+#    print('lastMonth_YMFirstday: ',lastMonth_YMFirstday)
+#    print('-----> debug')
+    if request == 'thisMonth_YMFirstday':
+        return thisMonth_YMFirstday
+    if request == 'lastMonth_YMFirstday':
+        return lastMonth_YMFirstday
+    if request == 'D':
+        return lastMonth_Day
 
 
 def minutes2time(m):
@@ -39,7 +71,7 @@ def minutes2time(m):
 
 ##[検討]ここをいつ起動しても先週の月〜日を指す方法に変更するのもあり
 ## 現在は、1日前から遡って7日分取得する方法
-def arr_days(today):
+def arr_weekdays(today):
     days = []
     for i in reversed(range(1, 8)):
 #    for i in reversed(range(2, 9)): # 火曜日用
@@ -47,12 +79,21 @@ def arr_days(today):
         days.append(datetime.strftime(day, '%Y-%m-%d'))
     return days
 
+def arr_monthdays(today):
+    days = []
+    for i in reversed(range(1, getLastMonthValiable('D')+1)):
+        day = getLastMonthValiable('thisMonth_YMFirstday') - relativedelta(days=i)
+        print(day)
+        days.append(datetime.strftime(day, '%Y-%m-%d'))
+    return days
+
+
 def serialize_log(*args, end="\n"):
     context = "".join(map(str, args)) + end
     return context
 
 
-def construct_user_record(user_name, studyWeekday, sum_study_time):
+def construct_user_weekrecord(user_name, studyWeekday, sum_study_time):
     userWeekResult = serialize_log("Name：", user_name)
     #ex) 配列内の[04-20]月-日の文字列を[20]0埋めしない日に変換
     studyDay = []
@@ -64,6 +105,30 @@ def construct_user_record(user_name, studyWeekday, sum_study_time):
     userWeekResult += serialize_log("　勉強した日付：", str(studyDay))
     userWeekResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)))
     return userWeekResult
+
+def construct_user_record(user_name, studyMonth_day, sum_study_time):
+    userMonthResult = serialize_log("Name：", user_name)
+    #userMonthResult += serialize_log("　勉強した日付：", str(studyMonth_day))
+    print("(",user_name,")","　勉強した日付：", str(studyMonth_day))
+    userMonthResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)),"(勉強日数：",len(studyMonth_day),")")
+    return userMonthResult
+
+
+def compose_users_weekrecord(strtoday, days, users_log):
+    code_block = "```"
+    separate = "====================\n"
+    start_message = serialize_log("@everyone ")
+    start_message += code_block + "\n"
+    start_message += serialize_log("今日の日付：", strtoday)
+    start_message += serialize_log("先週の日付：", days[0], "~", days[-1])
+    week_result = [start_message]
+    for user_log in users_log:
+        if len(week_result[-1] + (separate + user_log)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
+            week_result[-1] += code_block # end code_block
+            week_result.append(code_block) # start code_block
+        week_result[-1] += separate + user_log
+    week_result[-1] += code_block # end code_block
+    return week_result
 
 def compose_users_monthrecord(strtoday, days, users_log):
     code_block = "```"
@@ -81,21 +146,6 @@ def compose_users_monthrecord(strtoday, days, users_log):
     month_result[-1] += code_block # end code_block
     return month_result
 
-def compose_users_weekrecord(strtoday, days, users_log):
-    code_block = "```"
-    separate = "====================\n"
-    start_message = serialize_log("@everyone ")
-    start_message += code_block + "\n"
-    start_message += serialize_log("今日の日付：", strtoday)
-    start_message += serialize_log("先週の日付：", days[0], "~", days[-1])
-    week_result = [start_message]
-    for user_log in users_log:
-        if len(week_result[-1] + (separate + user_log)) >= MAX_SEND_MESSAGE_LENGTH - len(code_block):
-            week_result[-1] += code_block # end code_block
-            week_result.append(code_block) # start code_block
-        week_result[-1] += separate + user_log
-    week_result[-1] += code_block # end code_block
-    return week_result
 
 def compose_user_record(name, day, studytime):
     day_result = '''
@@ -134,7 +184,7 @@ def exclude_non_txt(file_list):
     return file_list_result
 
 
-
+## この月間分の処理でreturnをしないといけない
 def aggregate_users_record(days):
     """
     各ユーザーの１週間の学習時間と日数を集計する
@@ -169,7 +219,7 @@ def aggregate_users_record(days):
         memberStudytime.append({"username": user_name, "studydays": study_days, "sumstudytime": sum_study_time})
     memberStudytime.sort(key=lambda x: x["sumstudytime"], reverse=True)
     for studytime in memberStudytime :
-        user_record = construct_user_record(studytime["username"], studytime["studydays"], studytime["sumstudytime"])
+        user_record = construct_user_weekrecord(studytime["username"], studytime["studydays"], studytime["sumstudytime"])
         users_record.append(user_record)
     print("~< ソート済整形データ >~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print(memberStudytime)
@@ -180,7 +230,7 @@ def aggregate_users_record(days):
 def create_week_result():
     today = datetime.today()
     strtoday = datetime.strftime(today, '%Y-%m-%d')
-    days = arr_days(today)
+    days = arr_weekdays(today)
     user_records = aggregate_users_record(days)
     print(user_records[0])
     week_result = compose_users_weekrecord(strtoday, days, user_records)
@@ -189,7 +239,7 @@ def create_week_result():
 def create_month_result():
     today = datetime.today()
     strtoday = datetime.strftime(today, '%Y-%m-%d')
-    days = arr_days(today)
+    days = arr_monthdays(today)
     user_records = aggregate_users_record(days)
     month_result = compose_user_records(strtoday, days, user_records)
     return month_result
@@ -322,6 +372,19 @@ async def Week_Result(ctx):
         month_results = create_month_result()
         for month_result in month_results:
             await channel.send(month_result)
+
+@bot.command()
+async def Month_Result(ctx):
+    message = ctx.message
+        if message.author.id != 603567991132782592:
+            print('管理者(SuPleiades)以外のメンバーが実行しました')
+            return
+        print(f'手動月間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+        channel = client.get_channel(CHANNEL)
+        month_results = create_month_result()
+        for month_result in month_results:
+            await channel.send(month_result)
+
 
 #=======================
 # select studing target
