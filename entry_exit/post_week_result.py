@@ -30,6 +30,7 @@ USER_SETTINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "us
 MAX_SEND_MESSAGE_LENGTH = 2000
 ALLOWED_REACTION_LIST = [':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:', ':keycap_ten:']
 
+#tag:month
 def getMonth(y, m):
     if m in {1, 3, 5, 7, 8, 10, 12}:
         return 31
@@ -44,6 +45,7 @@ def getMonth(y, m):
         return 0
 
 
+#tag:month
 def getLastMonthValiable(request):
     thisMonth_YMFirstday = datetime(int(datetime.strftime(datetime.today(),'%Y')), int(datetime.strftime(datetime.today(),'%m')), 1) #ex)2020-03
     lastMonth_Y = int(datetime.strftime(datetime.today() - relativedelta(months=1), '%Y')) #ex)2020
@@ -79,6 +81,8 @@ def arr_weekdays(today):
         days.append(datetime.strftime(day, '%Y-%m-%d'))
     return days
 
+
+#tag:month
 def arr_monthdays(today):
     days = []
     for i in reversed(range(1, getLastMonthValiable('D')+1)):
@@ -106,7 +110,7 @@ def construct_user_weekrecord(user_name, studyWeekday, sum_study_time):
     userWeekResult += serialize_log("　合計勉強時間：", str(minutes2time(sum_study_time)))
     return userWeekResult
 
-def construct_user_record(user_name, studyMonth_day, sum_study_time):
+def construct_user_monthrecord(user_name, studyMonth_day, sum_study_time):
     userMonthResult = serialize_log("Name：", user_name)
     #userMonthResult += serialize_log("　勉強した日付：", str(studyMonth_day))
     print("(",user_name,")","　勉強した日付：", str(studyMonth_day))
@@ -130,6 +134,7 @@ def compose_users_weekrecord(strtoday, days, users_log):
     week_result[-1] += code_block # end code_block
     return week_result
 
+#tag:month
 def compose_users_monthrecord(strtoday, days, users_log):
     code_block = "```"
     separate = "====================\n"
@@ -216,6 +221,7 @@ def aggregate_users_record(days):
         for log in study_logs:
             sum_study_time += int(log.split(",")[-1])
         user_name = os.path.splitext(os.path.basename(user_log))[0]
+
         memberStudytime.append({"username": user_name, "studydays": study_days, "sumstudytime": sum_study_time})
     memberStudytime.sort(key=lambda x: x["sumstudytime"], reverse=True)
     for studytime in memberStudytime :
@@ -236,6 +242,7 @@ def create_week_result():
     week_result = compose_users_weekrecord(strtoday, days, user_records)
     return week_result
 
+#tag:month
 def create_month_result():
     today = datetime.today()
     strtoday = datetime.strftime(today, '%Y-%m-%d')
@@ -362,28 +369,17 @@ async def Week_Result(ctx):
         await channel.send(week_result)
 
 @bot.command()
-async def Week_Result(ctx):
-    message = ctx.message
-        if message.author.id != 603567991132782592:
-            print('管理者(SuPleiades)以外のメンバーが実行しました')
-            return
-        print(f'手動月間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
-        channel = bot.get_channel(CHANNEL)
-        month_results = create_month_result()
-        for month_result in month_results:
-            await channel.send(month_result)
-
-@bot.command()
 async def Month_Result(ctx):
     message = ctx.message
-        if message.author.id != 603567991132782592:
-            print('管理者(SuPleiades)以外のメンバーが実行しました')
-            return
-        print(f'手動月間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
-        channel = client.get_channel(CHANNEL)
-        month_results = create_month_result()
-        for month_result in month_results:
-            await channel.send(month_result)
+    print('Used Command :' + ctx.invoked_with + ' (User) ' + message.author.name)
+    if message.author.id != 603567991132782592:
+        print('管理者(SuPleiades)以外のメンバーが実行しました')
+        return
+    print(f'手動月間集計実行日: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+    channel = client.get_channel(CHANNEL)
+    month_results = create_month_result()
+    for month_result in month_results:
+        await channel.send(month_result)
 
 
 #=======================
