@@ -18,13 +18,13 @@ from discord.ext import tasks, commands
 client = discord.Client()
 bot = commands.Bot(command_prefix='¥')
 ## testroleiギルドの[テストBOT007]にて起動
-#TOKEN = setting.tToken
-#CHANNEL = setting.tChannel
-#SERVER = setting.tServer
+TOKEN = setting.tToken
+CHANNEL = setting.tChannel
+SERVER = setting.tServer
 
-TOKEN = setting.dToken
-CHANNEL = setting.wChannel
-SERVER = setting.dServer
+#TOKEN = setting.dToken
+#CHANNEL = setting.wChannel
+#SERVER = setting.dServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
 USER_SETTINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userSettings")
 MAX_SEND_MESSAGE_LENGTH = 2000
@@ -80,7 +80,6 @@ def arr_weekdays(today):
         day = today - timedelta(days=i)
         days.append(datetime.strftime(day, '%Y-%m-%d'))
     return days
-
 
 #tag:month
 def arr_monthdays(today):
