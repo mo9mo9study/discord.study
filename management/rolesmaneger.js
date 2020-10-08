@@ -81,7 +81,7 @@ const channelMessageAllDelete = async (channel) => {
       console.error(err);
     }
   });
-};
+}
 
 client.on("ready", () => {
   const channel = client.channels.cache.get(CHANNEL);
