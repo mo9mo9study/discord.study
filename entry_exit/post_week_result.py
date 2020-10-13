@@ -18,13 +18,12 @@ from discord.ext import tasks, commands
 client = discord.Client()
 bot = commands.Bot(command_prefix='¥')
 ## testroleiギルドの[テストBOT007]にて起動
-TOKEN = setting.tToken
-CHANNEL = setting.tChannel
-SERVER = setting.tServer
-
-#TOKEN = setting.dToken
-#CHANNEL = setting.wChannel
-#SERVER = setting.dServer
+#TOKEN = setting.tToken
+#CHANNEL = setting.tChannel
+#SERVER = setting.tServer
+TOKEN = setting.dToken
+CHANNEL = setting.wChannel
+SERVER = setting.dServer
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timelog")
 USER_SETTINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userSettings")
 MAX_SEND_MESSAGE_LENGTH = 2000
@@ -495,6 +494,10 @@ async def on_raw_reaction_add(payload):
 def dprint(msg):
     if not __debug__:
         pprint(msg)
+
+@bot.event
+async def on_ready():
+    print('Online')
 
 
 #自動集計用定期処理
