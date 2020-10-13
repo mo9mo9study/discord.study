@@ -21,7 +21,6 @@ bot = commands.Bot(command_prefix='¥')
 #TOKEN = setting.tToken
 #CHANNEL = setting.tChannel
 #SERVER = setting.tServer
-
 TOKEN = setting.dToken
 CHANNEL = setting.wChannel
 SERVER = setting.dServer
