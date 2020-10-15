@@ -325,9 +325,9 @@ async def result_d(ctx):
         sendMessage = compose_user_record(name, strtoday, sum_study_time)
         longUrl = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
         encodeMessage = shorten_url(longUrl, googleShortLinksPrefix , googleApiKey)
-        embed = discord.Embed(title="積み上げツイート用",description=sendMessage,,color=0xFDB46C)
+        embed = discord.Embed(title="積み上げツイート用",description=sendMessage,color=0xFDB46C)
         embed.add_field(name="⬇︎下のURLから簡単に積み上げツイートが出来るよ",value=encodeMessage)
-        await channel.send(embed=embed)
+        await ctx.send(embed=embed)
         #await ctx.send("```" + sendMessage + "```⬇︎下のURLから簡単に積み上げツイートが出来るよ\n" +encodeMessage)
     else:
         await ctx.send("[ " + ctx.subcommand_passed + " ]は無効な引数です")
@@ -348,9 +348,9 @@ async def ago(ctx):
     sendMessage = compose_user_record(name, strday, sum_study_time)
     longUrl = createTwitterUrlEncode("https://mo9mo9study.github.io/discord.web/", sendMessage)
     encodeMessage = shorten_url(longUrl, googleShortLinksPrefix , googleApiKey)
-    embed = discord.Embed(title="積み上げツイート用",description=sendMessage,,color=0xFDB46C)
+    embed = discord.Embed(title="積み上げツイート用",description=sendMessage,color=0xFDB46C)
     embed.add_field(name="⬇︎下のURLから簡単に積み上げツイートが出来るよ",value=encodeMessage)
-    await channel.send(embed=embed)
+    await ctx.send(embed=embed)
     #await ctx.send("```" + sendMessage + "```⬇︎下のURLから簡単に積み上げツイートが出来るよ\n" + encodeMessage)
 
 @bot.command()
