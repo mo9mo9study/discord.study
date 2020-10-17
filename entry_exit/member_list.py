@@ -43,7 +43,7 @@ async def member_list(ctx):
     members = []
     for member in bot.get_all_members():
         if member.bot is False:
-            row = str(member.display_name) + ',' + str(member.joined_at.strftime("%Y-%m-%d"))
+            row = str(member.name) + ',' + str(member.joined_at.strftime("%Y-%m-%d"))
             members.append(row)
 
     members = list(split_every(50, members))
