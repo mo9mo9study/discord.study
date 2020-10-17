@@ -50,7 +50,7 @@ async def member_list(ctx):
     for group in members:
         value = '\n'.join(group)
         embed = discord.Embed(title="メンバー一覧", color=0x28a745)
-        embed.add_field(name="display_name, joined_date", value=value)
+        embed.add_field(name="name, joined_date", value=value)
         await ctx.send(embed=embed)
 
 
